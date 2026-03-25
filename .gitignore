@@ -1,0 +1,14 @@
+# Python
+backend/__pycache__/
+backend/venv/
+backend/*.pyc
+
+# Node / Vue
+frontend/node_modules/
+frontend/dist/
+
+# VS Code
+.vscode/
+
+# Docker
+*.env
