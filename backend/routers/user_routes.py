@@ -1,30 +1,37 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
+from sqlalchemy.exc import IntegrityError
 from database import get_db
 from models import User
-from schemas import UserCreate, UserRead
+from schemas import UserCreate, UserRead, UserUpdate
 
-router = APIRouter()
+router = APIRouter(
+    prefix="/users",
+    tags=["users"]
+)
 
 # CREATE user
-@router.post("/users/", response_model=UserRead)
+@router.post("/", response_model=UserRead)
 def create_user(user_data: UserCreate, db: Session = Depends(get_db)):
-    existing = db.query(User).filter(User.username == user_data.username).first()
-    if existing:
-        raise HTTPException(status_code=400, detail="Username already exists")
     user = User(**user_data.dict())
     db.add(user)
-    db.commit()
+
+    try:
+        db.commit()
+    except IntegrityError:
+        db.rollback()
+        raise HTTPException(status_code=400, detail="Username already exists")
+
     db.refresh(user)
     return user
 
 # READ all users
-@router.get("/users/", response_model=list[UserRead])
-def get_users(db: Session = Depends(get_db)):
-    return db.query(User).all()
+@router.get("/", response_model=list[UserRead])
+def get_users(skip: int = 0, limit: int = 10, db: Session = Depends(get_db)):
+    return db.query(User).offset(skip).limit(limit).all()
 
 # READ single user by ID
-@router.get("/users/{user_id}", response_model=UserRead)
+@router.get("/{user_id}", response_model=UserRead)
 def get_user(user_id: int, db: Session = Depends(get_db)):
     user = db.query(User).filter(User.id == user_id).first()
     if not user:
@@ -32,19 +39,26 @@ def get_user(user_id: int, db: Session = Depends(get_db)):
     return user
 
 # UPDATE user by ID
-@router.put("/users/{user_id}", response_model=UserRead)
-def update_user(user_id: int, user_data: UserCreate, db: Session = Depends(get_db)):
+@router.put("/{user_id}", response_model=UserRead)
+def update_user(user_id: int, user_data: UserUpdate, db: Session = Depends(get_db)):
     user = db.query(User).filter(User.id == user_id).first()
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
-    for key, value in user_data.dict().items():
+
+    for key, value in user_data.dict(exclude_unset=True).items():
         setattr(user, key, value)
-    db.commit()
+
+    try:
+        db.commit()
+    except IntegrityError:
+        db.rollback()
+        raise HTTPException(status_code=400, detail="Username already exists")
+
     db.refresh(user)
     return user
 
 # DELETE user by ID
-@router.delete("/users/{user_id}", response_model=dict)
+@router.delete("/{user_id}", response_model=dict)
 def delete_user(user_id: int, db: Session = Depends(get_db)):
     user = db.query(User).filter(User.id == user_id).first()
     if not user:
