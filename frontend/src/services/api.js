@@ -11,8 +11,8 @@ async function handleResponse(res) {
 }
 
 // GET all users
-export async function getUsers() {
-    const res = await fetch(`${API_BASE}/users/`);
+export async function getUsers(skip = 0, limit = 10) {
+    const res = await fetch(`${API_BASE}/users/?skip=${skip}&limit=${limit}`);
     return handleResponse(res);
 }
 

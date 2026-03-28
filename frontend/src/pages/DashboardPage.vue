@@ -3,149 +3,293 @@ import { onMounted, ref, watch } from "vue";
 import { useUsers } from "../composables/useUsers";
 import { suggestUsername } from "../services/api";
 
-const { users, fetchUsers, addUser, removeUser } = useUsers();
+// Base Components
+import BaseButton from "../components/base/BaseButton.vue";
+import BaseInput from "../components/base/BaseInput.vue";
+import BaseModal from "../components/base/BaseModal.vue";
+import BaseTable from "../components/base/BaseTable.vue";
+import BasePagination from "../components/base/BasePagination.vue";
+import BaseCard from "../components/base/BaseCard.vue";
+import BaseToast from "../components/base/BaseToast.vue";
 
-const showForm = ref(false);
-const error = ref("");
+const {
+  users,
+  totalUsers,
+  page,
+  loading,
+  error,
+  fetchUsers,
+  addUser,
+  editUser,
+  removeUser
+} = useUsers();
 
+const showCreateModal = ref(false);
+const showEditModal = ref(false);
+const showDeleteModal = ref(false);
+const userToDelete = ref(null);
+const editingUser = ref(null);
+const successMessage = ref("");
+const createError = ref("");
+const editError = ref("");
 const usernameManuallyEdited = ref(false);
 let debounceTimer = null;
 
-const newUser = ref({
-    first_name: "",
-    last_name: "",
-    username: "",
-    phone_number: "",
-    address: ""
-});
+const initialNewUser = {
+  first_name: "",
+  last_name: "",
+  username: "",
+  phone_number: "",
+  address: ""
+};
+
+const newUser = ref({ ...initialNewUser });
 
 onMounted(() => {
-    fetchUsers();
+  fetchUsers();
 });
 
-function editUser(id) {
-    console.log("Edit user", id);
-}
+// Watch page for pagination
+watch(page, () => {
+  fetchUsers();
+});
 
-function handleDelete(id) {
-    if (confirm("Are you sure you want to delete this user?")) {
-        removeUser(id);
-    }
-}
-
-// 👇 Track manual username edits
-function onUsernameInput() {
-    usernameManuallyEdited.value = true;
-}
-
-// 👇 Watch first + last name for suggestion
+// Watch first + last name for username suggest
 watch(
-    () => [newUser.value.first_name, newUser.value.last_name],
-    ([first, last]) => {
-        if (!first || !last) return;
+  () => [newUser.value.first_name, newUser.value.last_name],
+  ([first, last]) => {
+    if (!first || !last) return;
 
-        // frontend instant suggestion
-        if (!usernameManuallyEdited.value) {
-            newUser.value.username = `${first}.${last}`.toLowerCase();
-        }
-
-        // debounce backend call
-        clearTimeout(debounceTimer);
-        debounceTimer = setTimeout(async () => {
-            try {
-                const res = await suggestUsername(first, last);
-
-                if (!usernameManuallyEdited.value) {
-                    newUser.value.username = res.username;
-                }
-            } catch (err) {
-                console.error(err);
-            }
-        }, 400);
+    if (!usernameManuallyEdited.value) {
+      newUser.value.username = `${first}.${last}`.toLowerCase().replace(/\s/g, '');
     }
+
+    clearTimeout(debounceTimer);
+    debounceTimer = setTimeout(async () => {
+      try {
+        const res = await suggestUsername(first, last);
+        if (!usernameManuallyEdited.value) {
+          newUser.value.username = res.username;
+        }
+      } catch (err) {
+        console.error("Suggest error:", err);
+      }
+    }, 5000);
+  }
 );
 
-async function handleAddUser() {
-    error.value = "";
-
-    if (!newUser.value.first_name || !newUser.value.last_name || !newUser.value.username) {
-        error.value = "First Name, Last Name and Username are required";
-        return;
-    }
-
-    try {
-        await addUser(newUser.value);
-
-        newUser.value = {
-            first_name: "",
-            last_name: "",
-            username: "",
-            phone_number: "",
-            address: ""
-        };
-
-        usernameManuallyEdited.value = false;
-        showForm.value = false;
-    } catch (err) {
-        error.value = err.message || "Failed to create user";
-    }
+function showToast(msg) {
+  successMessage.value = msg;
 }
+
+function onUsernameInput() {
+  usernameManuallyEdited.value = true;
+}
+
+function resetForm() {
+  newUser.value = { ...initialNewUser };
+  usernameManuallyEdited.value = false;
+  createError.value = "";
+}
+
+async function handleAddUser() {
+  createError.value = "";
+  try {
+    await addUser(newUser.value);
+    showCreateModal.value = false;
+    resetForm();
+    showToast("User created successfully!");
+  } catch (err) {
+    createError.value = err.message || "Failed to create user";
+  }
+}
+
+function openEditModal(user) {
+  editingUser.value = { ...user };
+  editError.value = "";
+  showEditModal.value = true;
+}
+
+async function handleUpdateUser() {
+  if (!editingUser.value) return;
+  editError.value = "";
+  try {
+    await editUser(editingUser.value.id, editingUser.value);
+    showEditModal.value = false;
+    showToast("User updated successfully!");
+  } catch (err) {
+    editError.value = err.message || "Failed to update user";
+  }
+}
+
+function confirmDelete(user) {
+  userToDelete.value = user;
+  showDeleteModal.value = true;
+}
+
+async function handleDelete() {
+  if (!userToDelete.value) return;
+  try {
+    await removeUser(userToDelete.value.id);
+    showDeleteModal.value = false;
+    userToDelete.value = null;
+    showToast("User deleted successfully!");
+  } catch (err) {
+    alert("Failed to delete user: " + err.message);
+  }
+}
+
+const tableColumns = [
+  { key: 'id', label: 'ID', width: '60px' },
+  { key: 'first_name', label: 'First Name', width: '130px' },
+  { key: 'last_name', label: 'Last Name', width: '130px' },
+  { key: 'username', label: 'Username', width: '130px' },
+  { key: 'phone_number', label: 'Phone', width: '120px' },
+  { key: 'address', label: 'Address', width: 'auto' },
+  { key: 'actions', label: 'Actions', width: '170px' }
+];
+
+
 </script>
 
 <template>
-    <div>
-        <h1>User Dashboard</h1>
+  <div class="container">
+    <header class="dashboard-header">
+      <h1>User Administration</h1>
+      <BaseButton variant="primary" @click="showCreateModal = true">
+        + Add User
+      </BaseButton>
+    </header>
 
-        <!-- Add User Button -->
-        <button @click="showForm = !showForm">
-            {{ showForm ? "Cancel" : "Add New User" }}
-        </button>
-        <!-- Add User Form -->
-        <div v-if="showForm" style="margin: 10px 0; padding: 10px; border: 1px solid #ccc;">
-            <!-- Error message -->
-            <p v-if="error" style="color: red;">{{ error }}</p>
+    <BaseCard>
+      <div v-if="error" class="cta-container error-state">
+        <p style="color: var(--error-color)">{{ error }}</p>
+        <BaseButton variant="neutral" @click="fetchUsers">Try Again</BaseButton>
+      </div>
 
-            <input v-model="newUser.first_name" placeholder="First Name" />
-            <input v-model="newUser.last_name" placeholder="Last Name" />
+      <template v-else>
+        <BaseTable :columns="tableColumns" :data="users" :loading="loading" empty-text="No users found in the system.">
 
-            <!-- username with manual override detection -->
-            <input v-model="newUser.username" @input="onUsernameInput" placeholder="Username" />
+          <template #cell(actions)="{ row }">
+            <div class="actions-cell">
+              <BaseButton variant="neutral" @click="openEditModal(row)">
+                <span class="icon">✏️</span> Edit
+              </BaseButton>
+              <BaseButton variant="danger" @click="confirmDelete(row)">
+                <span class="icon">🗑</span> Delete
+              </BaseButton>
+            </div>
+          </template>
 
-            <input v-model="newUser.phone_number" placeholder="Phone Number" />
-            <input v-model="newUser.address" placeholder="Address" />
+          <template #empty-cta>
+            <BaseButton variant="primary" @click="showCreateModal = true">
+              Create First User
+            </BaseButton>
+          </template>
+        </BaseTable>
 
-            <button @click="handleAddUser" :disabled="!newUser.first_name || !newUser.last_name || !newUser.username">
-                Save
-            </button>
+        <BasePagination v-model:currentPage="page" :totalItems="totalUsers" :itemsPerPage="10" />
+      </template>
+    </BaseCard>
+
+    <!-- Create User Modal -->
+    <BaseModal :show="showCreateModal" title="Create New User" @close="showCreateModal = false">
+      <template #default>
+        <p v-if="createError" style="color: var(--error-color); margin-bottom: 1rem;">
+          {{ createError }}
+        </p>
+        <div class="modal-form">
+          <BaseInput v-model="newUser.first_name" label="First Name" placeholder="Enter first name" />
+          <BaseInput v-model="newUser.last_name" label="Last Name" placeholder="Enter last name" />
+          <BaseInput v-model="newUser.username" label="Username" placeholder="Confirm or change username"
+            @input="onUsernameInput" />
+          <BaseInput v-model="newUser.phone_number" label="Telephone Number" placeholder="e.g. +49 123 456789" />
+          <BaseInput v-model="newUser.address" label="Address" placeholder="Street, City, ZIP" />
         </div>
+      </template>
 
-        <!-- Users Table -->
-        <table border="1" cellspacing="0" cellpadding="5">
-            <thead>
-                <tr>
-                    <th>ID</th>
-                    <th>First Name</th>
-                    <th>Last Name</th>
-                    <th>Username</th>
-                    <th>Phone</th>
-                    <th>Address</th>
-                    <th>Actions</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr v-for="user in users" :key="user.id">
-                    <td>{{ user.id }}</td>
-                    <td>{{ user.first_name }}</td>
-                    <td>{{ user.last_name }}</td>
-                    <td>{{ user.username }}</td>
-                    <td>{{ user.phone_number }}</td>
-                    <td>{{ user.address }}</td>
-                    <td>
-                        <button @click="editUser(user.id)">Edit</button>
-                        <button @click="handleDelete(user.id)">Delete</button>
-                    </td>
-                </tr>
-            </tbody>
-        </table>
-    </div>
+      <template #footer>
+        <BaseButton variant="neutral" @click="resetForm">
+          Reset
+        </BaseButton>
+        <BaseButton variant="primary" :loading="loading"
+          :disabled="!newUser.first_name || !newUser.last_name || !newUser.username" @click="handleAddUser">
+          Create User
+        </BaseButton>
+      </template>
+    </BaseModal>
+
+    <!-- Edit User Modal -->
+    <BaseModal :show="showEditModal" title="Edit User" @close="showEditModal = false">
+      <template #default>
+        <p v-if="editError" style="color: var(--error-color); margin-bottom: 1rem;">
+          {{ editError }}
+        </p>
+
+        <div v-if="editingUser" class="modal-form">
+          <BaseInput v-model="editingUser.first_name" label="First Name" />
+          <BaseInput v-model="editingUser.last_name" label="Last Name" />
+          <BaseInput v-model="editingUser.username" label="Username" />
+          <BaseInput v-model="editingUser.phone_number" label="Telephone Number" />
+          <BaseInput v-model="editingUser.address" label="Address" />
+        </div>
+      </template>
+
+      <template #footer>
+        <BaseButton variant="neutral" @click="showEditModal = false">
+          Cancel
+        </BaseButton>
+        <BaseButton variant="primary" :loading="loading" @click="handleUpdateUser">
+          Save Changes
+        </BaseButton>
+      </template>
+    </BaseModal>
+
+    <!-- Delete Confirmation Modal -->
+    <BaseModal :show="showDeleteModal" title="Confirm Deletion" @close="showDeleteModal = false">
+      <p v-if="userToDelete">
+        Are you sure you want to delete user <strong>{{ userToDelete.first_name }} {{ userToDelete.last_name
+        }}</strong>?
+        <br>This action cannot be undone.
+      </p>
+      <template #footer>
+        <BaseButton variant="neutral" @click="showDeleteModal = false">Cancel</BaseButton>
+        <BaseButton variant="danger" :loading="loading" @click="handleDelete">
+          Delete Forever
+        </BaseButton>
+      </template>
+    </BaseModal>
+
+    <!-- Toasts -->
+    <BaseToast v-if="successMessage" :message="successMessage" @close="successMessage = ''" />
+  </div>
 </template>
+
+<style scoped>
+.dashboard-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+}
+
+.dashboard-header h1 {
+  margin: 0;
+}
+
+.actions-cell {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.modal-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.error-state {
+  border-color: var(--error-color);
+  background: rgba(215, 0, 0, 0.05);
+}
+</style>
