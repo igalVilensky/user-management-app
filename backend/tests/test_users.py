@@ -36,6 +36,29 @@ def test_get_users(client):
     assert len(data["users"]) >= 1
     assert any(u["username"] == "listuser" for u in data["users"])
 
+def test_get_users_limit(client):
+    """Test retrieving users with a specific limit."""
+    # Create 3 users
+    for i in range(3):
+        res = client.post(
+            "/users/",
+            json={
+                "username": f"limituser{i}",
+                "first_name": "Limit",
+                "last_name": "Test",
+                "address": "Limit St",
+                "phone_number": "0000000000"
+            }
+        )
+        assert res.status_code == 201
+    
+    # Request with limit=2
+    response = client.get("/users/?limit=2")
+    assert response.status_code == 200
+    data = response.json()
+    assert len(data["users"]) == 2
+    assert data["total_count"] >= 3
+
 def test_get_user_by_id(client):
     """Test retrieving a single user by ID."""
     create_response = client.post(
