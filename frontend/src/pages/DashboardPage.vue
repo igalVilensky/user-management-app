@@ -11,6 +11,7 @@ import BaseTable from "../components/base/BaseTable.vue";
 import BasePagination from "../components/base/BasePagination.vue";
 import BaseCard from "../components/base/BaseCard.vue";
 import BaseToast from "../components/base/BaseToast.vue";
+import { computed } from "vue";
 
 const {
   users,
@@ -39,6 +40,60 @@ const isEditing = ref(false);
 const isDeleting = ref(false);
 let debounceTimer = null;
 
+// Validation States
+const newUserErrors = ref({
+  first_name: "",
+  last_name: "",
+  username: "",
+  phone_number: ""
+});
+
+const editingUserErrors = ref({
+  first_name: "",
+  last_name: "",
+  username: "",
+  phone_number: ""
+});
+
+function validateField(field, value) {
+  if (!value && ['first_name', 'last_name', 'username'].includes(field)) {
+    return "This field is required";
+  }
+
+  if (['first_name', 'last_name'].includes(field)) {
+    if (value && !/^[a-zA-Z\s\-']{1,50}$/.test(value)) {
+      return "Only letters, spaces, hyphens, or apostrophes allowed (up to 50 chars)";
+    }
+  }
+
+  if (field === 'username') {
+    if (value && value.length < 3) {
+      return "Username must be at least 3 characters";
+    }
+    if (value && value.length > 50) {
+      return "Username must be 50 characters or less";
+    }
+  }
+
+  if (field === 'phone_number') {
+    if (value && !/^[\+\d\s\-\(\)]{8,20}$/.test(value)) {
+      return "Invalid format (8-20 chars: numbers, spaces, -, (, ), +)";
+    }
+  }
+
+  return "";
+}
+
+const hasCreateErrors = computed(() => {
+  return Object.values(newUserErrors.value).some(error => error !== "") ||
+    !newUser.value.first_name || !newUser.value.last_name || !newUser.value.username;
+});
+
+const hasEditErrors = computed(() => {
+  return Object.values(editingUserErrors.value).some(error => error !== "") ||
+    (editingUser.value && (!editingUser.value.first_name || !editingUser.value.last_name || !editingUser.value.username));
+});
+
 const initialNewUser = {
   first_name: "",
   last_name: "",
@@ -62,6 +117,10 @@ watch([page, limit], () => {
 watch(
   () => [newUser.value.first_name, newUser.value.last_name],
   ([first, last]) => {
+    // Validate names immediately
+    newUserErrors.value.first_name = validateField('first_name', first);
+    newUserErrors.value.last_name = validateField('last_name', last);
+
     if (!first || !last) return;
 
     // Clear existing timer
@@ -86,6 +145,24 @@ watch(
   }
 );
 
+// Watch username and phone for validation
+watch(() => newUser.value.username, (val) => {
+  newUserErrors.value.username = validateField('username', val);
+});
+
+watch(() => newUser.value.phone_number, (val) => {
+  newUserErrors.value.phone_number = validateField('phone_number', val);
+});
+
+// Watch editing user for validation
+watch(() => editingUser.value, (val) => {
+  if (!val) return;
+  editingUserErrors.value.first_name = validateField('first_name', val.first_name);
+  editingUserErrors.value.last_name = validateField('last_name', val.last_name);
+  editingUserErrors.value.username = validateField('username', val.username);
+  editingUserErrors.value.phone_number = validateField('phone_number', val.phone_number);
+}, { deep: true });
+
 function showToast(msg) {
   successMessage.value = msg;
 }
@@ -96,6 +173,12 @@ function onUsernameInput() {
 
 function resetForm() {
   newUser.value = { ...initialNewUser };
+  newUserErrors.value = {
+    first_name: "",
+    last_name: "",
+    username: "",
+    phone_number: ""
+  };
   usernameManuallyEdited.value = false;
   createError.value = "";
 }
@@ -117,6 +200,12 @@ async function handleAddUser() {
 
 function openEditModal(user) {
   editingUser.value = { ...user };
+  editingUserErrors.value = {
+    first_name: "",
+    last_name: "",
+    username: "",
+    phone_number: ""
+  };
   usernameManuallyEdited.value = false;
   editError.value = "";
   showEditModal.value = true;
@@ -218,11 +307,14 @@ const tableColumns = [
           {{ createError }}
         </div>
         <div class="modal-form">
-          <BaseInput v-model="newUser.first_name" label="First Name" placeholder="Enter first name" required />
-          <BaseInput v-model="newUser.last_name" label="Last Name" placeholder="Enter last name" required />
+          <BaseInput v-model="newUser.first_name" label="First Name" placeholder="Enter first name"
+            :error="newUserErrors.first_name" required />
+          <BaseInput v-model="newUser.last_name" label="Last Name" placeholder="Enter last name"
+            :error="newUserErrors.last_name" required />
           <BaseInput v-model="newUser.username" label="Username" placeholder="Confirm or change username"
-            @input="onUsernameInput" required />
-          <BaseInput v-model="newUser.phone_number" label="Telephone Number" placeholder="e.g. +49 123 456789" />
+            :error="newUserErrors.username" @input="onUsernameInput" required />
+          <BaseInput v-model="newUser.phone_number" label="Telephone Number" placeholder="e.g. +49 123 456789"
+            :error="newUserErrors.phone_number" />
           <BaseInput v-model="newUser.address" label="Address" placeholder="Street, City, ZIP" />
         </div>
       </template>
@@ -231,8 +323,7 @@ const tableColumns = [
         <BaseButton variant="neutral" @click="resetForm">
           Reset
         </BaseButton>
-        <BaseButton variant="primary" :loading="isCreating"
-          :disabled="!newUser.first_name || !newUser.last_name || !newUser.username" @click="handleAddUser">
+        <BaseButton variant="primary" :loading="isCreating" :disabled="hasCreateErrors" @click="handleAddUser">
           Create User
         </BaseButton>
       </template>
@@ -246,10 +337,11 @@ const tableColumns = [
         </div>
 
         <div v-if="editingUser" class="modal-form">
-          <BaseInput v-model="editingUser.first_name" label="First Name" />
-          <BaseInput v-model="editingUser.last_name" label="Last Name" />
-          <BaseInput v-model="editingUser.username" label="Username" @input="onEditUsernameInput" />
-          <BaseInput v-model="editingUser.phone_number" label="Telephone Number" />
+          <BaseInput v-model="editingUser.first_name" label="First Name" :error="editingUserErrors.first_name" />
+          <BaseInput v-model="editingUser.last_name" label="Last Name" :error="editingUserErrors.last_name" />
+          <BaseInput v-model="editingUser.username" label="Username" :error="editingUserErrors.username"
+            @input="onEditUsernameInput" />
+          <BaseInput v-model="editingUser.phone_number" label="Telephone Number" :error="editingUserErrors.phone_number" />
           <BaseInput v-model="editingUser.address" label="Address" />
         </div>
       </template>
@@ -258,7 +350,7 @@ const tableColumns = [
         <BaseButton variant="neutral" @click="showEditModal = false">
           Cancel
         </BaseButton>
-        <BaseButton variant="primary" :loading="isEditing" @click="handleUpdateUser">
+        <BaseButton variant="primary" :loading="isEditing" :disabled="hasEditErrors" @click="handleUpdateUser">
           Save Changes
         </BaseButton>
       </template>

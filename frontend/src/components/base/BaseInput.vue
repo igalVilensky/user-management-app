@@ -68,6 +68,10 @@ defineEmits(['update:modelValue']);
   border-color: var(--error-color);
 }
 
+.base-input.has-error:focus {
+  box-shadow: 0 0 0 3px rgba(215, 0, 0, 0.1);
+}
+
 .input-error {
   color: var(--error-color);
   font-size: 0.75rem;
