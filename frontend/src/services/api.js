@@ -1,15 +1,25 @@
 const API_BASE = "http://127.0.0.1:8000";
 
+async function handleResponse(res) {
+    const data = await res.json();
+
+    if (!res.ok) {
+        throw new Error(data.detail || "Request failed");
+    }
+
+    return data;
+}
+
 // GET all users
 export async function getUsers() {
     const res = await fetch(`${API_BASE}/users/`);
-    return res.json();
+    return handleResponse(res);
 }
 
 // GET single user
 export async function getUser(id) {
     const res = await fetch(`${API_BASE}/users/${id}`);
-    return res.json();
+    return handleResponse(res);
 }
 
 // CREATE user
@@ -21,7 +31,7 @@ export async function createUser(data) {
         },
         body: JSON.stringify(data),
     });
-    return res.json();
+    return handleResponse(res);
 }
 
 // UPDATE user
@@ -33,7 +43,7 @@ export async function updateUser(id, data) {
         },
         body: JSON.stringify(data),
     });
-    return res.json();
+    return handleResponse(res);
 }
 
 // DELETE user
@@ -41,5 +51,13 @@ export async function deleteUser(id) {
     const res = await fetch(`${API_BASE}/users/${id}`, {
         method: "DELETE",
     });
-    return res.json();
+    return handleResponse(res);
+}
+
+// Suggest username
+export async function suggestUsername(firstName, lastName) {
+    const res = await fetch(
+        `${API_BASE}/users/suggest-username?first_name=${firstName}&last_name=${lastName}`
+    );
+    return handleResponse(res);
 }

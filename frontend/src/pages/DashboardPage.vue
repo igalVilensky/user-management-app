@@ -1,10 +1,16 @@
 <script setup>
-import { onMounted, ref } from "vue";
+import { onMounted, ref, watch } from "vue";
 import { useUsers } from "../composables/useUsers";
+import { suggestUsername } from "../services/api";
 
 const { users, fetchUsers, addUser, removeUser } = useUsers();
 
 const showForm = ref(false);
+const error = ref("");
+
+const usernameManuallyEdited = ref(false);
+let debounceTimer = null;
+
 const newUser = ref({
     first_name: "",
     last_name: "",
@@ -27,14 +33,62 @@ function handleDelete(id) {
     }
 }
 
+// 👇 Track manual username edits
+function onUsernameInput() {
+    usernameManuallyEdited.value = true;
+}
+
+// 👇 Watch first + last name for suggestion
+watch(
+    () => [newUser.value.first_name, newUser.value.last_name],
+    ([first, last]) => {
+        if (!first || !last) return;
+
+        // frontend instant suggestion
+        if (!usernameManuallyEdited.value) {
+            newUser.value.username = `${first}.${last}`.toLowerCase();
+        }
+
+        // debounce backend call
+        clearTimeout(debounceTimer);
+        debounceTimer = setTimeout(async () => {
+            try {
+                const res = await suggestUsername(first, last);
+
+                if (!usernameManuallyEdited.value) {
+                    newUser.value.username = res.username;
+                }
+            } catch (err) {
+                console.error(err);
+            }
+        }, 400);
+    }
+);
+
 async function handleAddUser() {
+    error.value = "";
+
     if (!newUser.value.first_name || !newUser.value.last_name || !newUser.value.username) {
-        alert("First Name, Last Name and Username are required!");
+        error.value = "First Name, Last Name and Username are required";
         return;
     }
-    await addUser(newUser.value);
-    newUser.value = { first_name: "", last_name: "", username: "", phone_number: "", address: "" };
-    showForm.value = false;
+
+    try {
+        await addUser(newUser.value);
+
+        newUser.value = {
+            first_name: "",
+            last_name: "",
+            username: "",
+            phone_number: "",
+            address: ""
+        };
+
+        usernameManuallyEdited.value = false;
+        showForm.value = false;
+    } catch (err) {
+        error.value = err.message || "Failed to create user";
+    }
 }
 </script>
 
@@ -46,17 +100,26 @@ async function handleAddUser() {
         <button @click="showForm = !showForm">
             {{ showForm ? "Cancel" : "Add New User" }}
         </button>
-
         <!-- Add User Form -->
         <div v-if="showForm" style="margin: 10px 0; padding: 10px; border: 1px solid #ccc;">
+            <!-- Error message -->
+            <p v-if="error" style="color: red;">{{ error }}</p>
+
             <input v-model="newUser.first_name" placeholder="First Name" />
             <input v-model="newUser.last_name" placeholder="Last Name" />
-            <input v-model="newUser.username" placeholder="Username" />
+
+            <!-- username with manual override detection -->
+            <input v-model="newUser.username" @input="onUsernameInput" placeholder="Username" />
+
             <input v-model="newUser.phone_number" placeholder="Phone Number" />
             <input v-model="newUser.address" placeholder="Address" />
-            <button @click="handleAddUser">Save</button>
+
+            <button @click="handleAddUser" :disabled="!newUser.first_name || !newUser.last_name || !newUser.username">
+                Save
+            </button>
         </div>
 
+        <!-- Users Table -->
         <table border="1" cellspacing="0" cellpadding="5">
             <thead>
                 <tr>
