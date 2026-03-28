@@ -25,6 +25,19 @@ def create_user(user_data: UserCreate, db: Session = Depends(get_db)):
     db.refresh(user)
     return user
 
+# Suggest username
+@router.get("/suggest-username")
+def suggest_username(first_name: str, last_name: str, db: Session = Depends(get_db)):
+    base = f"{first_name}.{last_name}".lower()
+    username = base
+    counter = 1
+
+    while db.query(User).filter(User.username == username).first():
+        username = f"{base}{counter}"
+        counter += 1
+
+    return {"username": username}
+
 # READ all users
 @router.get("/", response_model=list[UserRead])
 def get_users(skip: int = 0, limit: int = 10, db: Session = Depends(get_db)):
