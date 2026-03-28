@@ -60,13 +60,30 @@ The backend will run at [http://127.0.0.1:8000](http://127.0.0.1:8000)
 ### 2. Start the Frontend Development Server
 
 ```bash
-cd frontend
-npm run dev
-```
-
 The frontend will run at [http://localhost:5173](http://localhost:5173)
-
-### 3. Access the Application
+ 
+ ### 3. Start the Frontend Development Server
+ 
+ ```bash
+ cd frontend
+ npm run dev
+ ```
+ 
+ The frontend will run at [http://localhost:5173](http://localhost:5173)
+ 
+ ### 4. Running Tests
+ 
+ ```bash
+ cd backend
+ # On Windows
+ venv\Scripts\pytest
+ # On Linux/macOS
+ ./venv/bin/pytest
+ ```
+ 
+ This will run the backend test suite (7 tests covering all CRUD operations).
+ 
+ ### 5. Access the Application
 
 Open your browser and navigate to [http://localhost:5173](http://localhost:5173)
 
@@ -87,6 +104,10 @@ Open your browser and navigate to [http://localhost:5173](http://localhost:5173)
 ├── backend/
 │   ├── routers/
 │   │   └── user_routes.py
+│   ├── tests/
+│   │   ├── conftest.py
+│   │   ├── test_main.py
+│   │   └── test_users.py
 │   ├── database.py
 │   ├── main.py
 │   ├── models.py
