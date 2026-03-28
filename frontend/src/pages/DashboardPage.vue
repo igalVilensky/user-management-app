@@ -16,6 +16,7 @@ const {
   users,
   totalUsers,
   page,
+  limit,
   loading,
   error,
   fetchUsers,
@@ -52,8 +53,8 @@ onMounted(() => {
   fetchUsers();
 });
 
-// Watch page for pagination
-watch(page, () => {
+// Watch page and limit for pagination changes
+watch([page, limit], () => {
   fetchUsers();
 });
 
@@ -206,7 +207,7 @@ const tableColumns = [
           </template>
         </BaseTable>
 
-        <BasePagination v-model:currentPage="page" :totalItems="totalUsers" :itemsPerPage="10" />
+        <BasePagination v-model:currentPage="page" v-model:itemsPerPage="limit" :totalItems="totalUsers" />
       </template>
     </BaseCard>
 
