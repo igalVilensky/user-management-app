@@ -7,6 +7,10 @@ defineProps({
   type: {
     type: String,
     default: 'text'
+  },
+  required: {
+    type: Boolean,
+    default: false
   }
 });
 
@@ -15,15 +19,12 @@ defineEmits(['update:modelValue']);
 
 <template>
   <div class="base-input-wrapper">
-    <label v-if="label" class="input-label">{{ label }}</label>
-    <input
-      :type="type"
-      :value="modelValue"
-      @input="$emit('update:modelValue', $event.target.value)"
-      class="base-input"
-      :class="{ 'has-error': error }"
-      :placeholder="placeholder"
-    />
+    <label v-if="label" class="input-label">
+      {{ label }}
+      <span v-if="required" class="required-star">*</span>
+    </label>
+    <input :type="type" :value="modelValue" @input="$emit('update:modelValue', $event.target.value)" class="base-input"
+      :class="{ 'has-error': error }" :placeholder="placeholder" />
     <span v-if="error" class="input-error">{{ error }}</span>
   </div>
 </template>
@@ -40,6 +41,11 @@ defineEmits(['update:modelValue']);
   font-weight: 600;
   margin-bottom: 0.5rem;
   color: var(--text-secondary);
+}
+
+.required-star {
+  color: var(--error-color);
+  margin-left: 4px;
 }
 
 .base-input {

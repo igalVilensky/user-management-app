@@ -24,8 +24,8 @@ defineProps({
 .base-card {
   background: white;
   border: 1px solid var(--border-color);
-  border-radius: 8px;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+  border-radius: 12px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
   margin-bottom: 2rem;
   overflow: hidden;
 }
@@ -39,7 +39,7 @@ defineProps({
 .card-header h3 {
   margin: 0;
   font-size: 1.25rem;
-  font-weight: 700;
+  font-weight: 600;
   color: var(--text-primary);
 }
 
@@ -53,15 +53,18 @@ defineProps({
   padding: 1.5rem;
 }
 
-@media (max-width: 768px) {
-  .card-header, .card-body {
-    padding: 1rem;
-  }
-}
-
 .card-footer {
   padding: 1.25rem 1.5rem;
   background: var(--hover-bg);
   border-top: 1px solid var(--border-color);
+}
+
+@media (max-width: 768px) {
+
+  .card-header,
+  .card-body,
+  .card-footer {
+    padding: 1rem;
+  }
 }
 </style>

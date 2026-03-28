@@ -33,6 +33,9 @@ const successMessage = ref("");
 const createError = ref("");
 const editError = ref("");
 const usernameManuallyEdited = ref(false);
+const isCreating = ref(false);
+const isEditing = ref(false);
+const isDeleting = ref(false);
 let debounceTimer = null;
 
 const initialNewUser = {
@@ -60,11 +63,15 @@ watch(
   ([first, last]) => {
     if (!first || !last) return;
 
+    // Clear existing timer
+    if (debounceTimer) clearTimeout(debounceTimer);
+
+    // Set initial suggestion
     if (!usernameManuallyEdited.value) {
       newUser.value.username = `${first}.${last}`.toLowerCase().replace(/\s/g, '');
     }
 
-    clearTimeout(debounceTimer);
+    // Debounce API call to avoid too many requests
     debounceTimer = setTimeout(async () => {
       try {
         const res = await suggestUsername(first, last);
@@ -74,7 +81,7 @@ watch(
       } catch (err) {
         console.error("Suggest error:", err);
       }
-    }, 5000);
+    }, 500);
   }
 );
 
@@ -94,6 +101,7 @@ function resetForm() {
 
 async function handleAddUser() {
   createError.value = "";
+  isCreating.value = true;
   try {
     await addUser(newUser.value);
     showCreateModal.value = false;
@@ -101,24 +109,34 @@ async function handleAddUser() {
     showToast("User created successfully!");
   } catch (err) {
     createError.value = err.message || "Failed to create user";
+  } finally {
+    isCreating.value = false;
   }
 }
 
 function openEditModal(user) {
   editingUser.value = { ...user };
+  usernameManuallyEdited.value = false;
   editError.value = "";
   showEditModal.value = true;
+}
+
+function onEditUsernameInput() {
+  usernameManuallyEdited.value = true;
 }
 
 async function handleUpdateUser() {
   if (!editingUser.value) return;
   editError.value = "";
+  isEditing.value = true;
   try {
     await editUser(editingUser.value.id, editingUser.value);
     showEditModal.value = false;
     showToast("User updated successfully!");
   } catch (err) {
     editError.value = err.message || "Failed to update user";
+  } finally {
+    isEditing.value = false;
   }
 }
 
@@ -129,6 +147,7 @@ function confirmDelete(user) {
 
 async function handleDelete() {
   if (!userToDelete.value) return;
+  isDeleting.value = true;
   try {
     await removeUser(userToDelete.value.id);
     showDeleteModal.value = false;
@@ -136,6 +155,8 @@ async function handleDelete() {
     showToast("User deleted successfully!");
   } catch (err) {
     alert("Failed to delete user: " + err.message);
+  } finally {
+    isDeleting.value = false;
   }
 }
 
@@ -148,8 +169,6 @@ const tableColumns = [
   { key: 'address', label: 'Address', width: 'auto' },
   { key: 'actions', label: 'Actions', width: '170px' }
 ];
-
-
 </script>
 
 <template>
@@ -169,7 +188,6 @@ const tableColumns = [
 
       <template v-else>
         <BaseTable :columns="tableColumns" :data="users" :loading="loading" empty-text="No users found in the system.">
-
           <template #cell(actions)="{ row }">
             <div class="actions-cell">
               <BaseButton variant="neutral" @click="openEditModal(row)">
@@ -195,14 +213,14 @@ const tableColumns = [
     <!-- Create User Modal -->
     <BaseModal :show="showCreateModal" title="Create New User" @close="showCreateModal = false">
       <template #default>
-        <p v-if="createError" style="color: var(--error-color); margin-bottom: 1rem;">
+        <div v-if="createError" class="error-message">
           {{ createError }}
-        </p>
+        </div>
         <div class="modal-form">
-          <BaseInput v-model="newUser.first_name" label="First Name" placeholder="Enter first name" />
-          <BaseInput v-model="newUser.last_name" label="Last Name" placeholder="Enter last name" />
+          <BaseInput v-model="newUser.first_name" label="First Name" placeholder="Enter first name" required />
+          <BaseInput v-model="newUser.last_name" label="Last Name" placeholder="Enter last name" required />
           <BaseInput v-model="newUser.username" label="Username" placeholder="Confirm or change username"
-            @input="onUsernameInput" />
+            @input="onUsernameInput" required />
           <BaseInput v-model="newUser.phone_number" label="Telephone Number" placeholder="e.g. +49 123 456789" />
           <BaseInput v-model="newUser.address" label="Address" placeholder="Street, City, ZIP" />
         </div>
@@ -212,7 +230,7 @@ const tableColumns = [
         <BaseButton variant="neutral" @click="resetForm">
           Reset
         </BaseButton>
-        <BaseButton variant="primary" :loading="loading"
+        <BaseButton variant="primary" :loading="isCreating"
           :disabled="!newUser.first_name || !newUser.last_name || !newUser.username" @click="handleAddUser">
           Create User
         </BaseButton>
@@ -222,14 +240,14 @@ const tableColumns = [
     <!-- Edit User Modal -->
     <BaseModal :show="showEditModal" title="Edit User" @close="showEditModal = false">
       <template #default>
-        <p v-if="editError" style="color: var(--error-color); margin-bottom: 1rem;">
+        <div v-if="editError" class="error-message">
           {{ editError }}
-        </p>
+        </div>
 
         <div v-if="editingUser" class="modal-form">
           <BaseInput v-model="editingUser.first_name" label="First Name" />
           <BaseInput v-model="editingUser.last_name" label="Last Name" />
-          <BaseInput v-model="editingUser.username" label="Username" />
+          <BaseInput v-model="editingUser.username" label="Username" @input="onEditUsernameInput" />
           <BaseInput v-model="editingUser.phone_number" label="Telephone Number" />
           <BaseInput v-model="editingUser.address" label="Address" />
         </div>
@@ -239,7 +257,7 @@ const tableColumns = [
         <BaseButton variant="neutral" @click="showEditModal = false">
           Cancel
         </BaseButton>
-        <BaseButton variant="primary" :loading="loading" @click="handleUpdateUser">
+        <BaseButton variant="primary" :loading="isEditing" @click="handleUpdateUser">
           Save Changes
         </BaseButton>
       </template>
@@ -254,7 +272,7 @@ const tableColumns = [
       </p>
       <template #footer>
         <BaseButton variant="neutral" @click="showDeleteModal = false">Cancel</BaseButton>
-        <BaseButton variant="danger" :loading="loading" @click="handleDelete">
+        <BaseButton variant="danger" :loading="isDeleting" @click="handleDelete">
           Delete Forever
         </BaseButton>
       </template>
@@ -291,5 +309,15 @@ const tableColumns = [
 .error-state {
   border-color: var(--error-color);
   background: rgba(215, 0, 0, 0.05);
+}
+
+.error-message {
+  color: var(--error-color, #d70000);
+  margin-bottom: 1rem;
+  padding: 0.75rem;
+  background: rgba(215, 0, 0, 0.05);
+  border-radius: 6px;
+  font-size: 0.875rem;
+  border-left: 3px solid var(--error-color, #d70000);
 }
 </style>

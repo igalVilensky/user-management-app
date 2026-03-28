@@ -13,7 +13,7 @@ defineEmits(['close']);
         <div class="modal-content">
           <header class="modal-header">
             <h3>{{ title }}</h3>
-            <button class="close-btn" @click="$emit('close')">&times;</button>
+            <button class="close-btn" @click="$emit('close')" aria-label="Close modal">&times;</button>
           </header>
           <div class="modal-body">
             <slot />
@@ -79,6 +79,12 @@ defineEmits(['close']);
   display: flex;
   align-items: center;
   justify-content: center;
+  border-radius: 6px;
+  transition: background 0.2s;
+}
+
+.close-btn:hover {
+  background: rgba(0, 0, 0, 0.05);
 }
 
 .modal-body {
@@ -96,7 +102,7 @@ defineEmits(['close']);
   flex-shrink: 0;
 }
 
-/* ==================== Mobile Optimizations ==================== */
+/* Mobile Optimizations */
 @media (max-width: 480px) {
   .modal-overlay {
     padding: 0;

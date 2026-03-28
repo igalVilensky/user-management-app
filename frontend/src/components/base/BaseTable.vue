@@ -71,7 +71,6 @@ defineProps({
 
 .base-table {
   width: 100%;
-  min-width: 1100px;
   border-collapse: collapse;
   table-layout: fixed;
 }
@@ -113,7 +112,7 @@ tr:last-child td {
   color: var(--text-secondary);
 }
 
-/* ====================== MOBILE CARD LAYOUT ====================== */
+/* Mobile Card Layout */
 @media (max-width: 640px) {
   .base-table {
     min-width: unset;
@@ -137,13 +136,15 @@ tr:last-child td {
     justify-content: space-between;
     padding: 0.75rem 0;
     border-bottom: 1px dashed var(--border-color);
+    white-space: normal;
+    overflow: visible;
   }
 
   .base-table td:last-child {
     border-bottom: none;
   }
 
-  .base-table td:before {
+  .base-table td::before {
     content: attr(data-label);
     font-weight: 600;
     color: var(--text-secondary);

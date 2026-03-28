@@ -13,6 +13,9 @@ export function useUsers() {
     const limit = ref(10);
     const loading = ref(false);
     const error = ref(null);
+    const creating = ref(false);
+    const updating = ref(false);
+    const deleting = ref(false);
 
     async function fetchUsers() {
         loading.value = true;
@@ -31,24 +34,48 @@ export function useUsers() {
     }
 
     async function addUser(user) {
-        await createUser(user);
-        await fetchUsers(); // Re-fetch to update count and list
+        creating.value = true;
+        try {
+            await createUser(user);
+            // If we're not on page 1, go to page 1 to see new user
+            if (page.value !== 1) {
+                page.value = 1;
+            } else {
+                await fetchUsers();
+            }
+        } catch (err) {
+            throw err;
+        } finally {
+            creating.value = false;
+        }
     }
 
     async function editUser(id, user) {
-        await updateUser(id, user);
-        // We can update locally or re-fetch. 
-        // For inline editing, local update is smoother, but re-fetch is safer.
-        await fetchUsers();
+        updating.value = true;
+        try {
+            await updateUser(id, user);
+            await fetchUsers();
+        } catch (err) {
+            throw err;
+        } finally {
+            updating.value = false;
+        }
     }
 
     async function removeUser(id) {
-        await deleteUser(id);
-        // If we are on a page that becomes empty, go back
-        if (users.value.length === 1 && page.value > 1) {
-            page.value--;
+        deleting.value = true;
+        try {
+            await deleteUser(id);
+            // If we're on last item and not first page, go back
+            if (users.value.length === 1 && page.value > 1) {
+                page.value--;
+            }
+            await fetchUsers();
+        } catch (err) {
+            throw err;
+        } finally {
+            deleting.value = false;
         }
-        await fetchUsers();
     }
 
     return {
@@ -58,6 +85,9 @@ export function useUsers() {
         limit,
         loading,
         error,
+        creating,
+        updating,
+        deleting,
         fetchUsers,
         addUser,
         editUser,

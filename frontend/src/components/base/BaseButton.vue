@@ -14,11 +14,7 @@ defineProps({
 </script>
 
 <template>
-  <button
-    :type="type"
-    :class="['base-button', `variant-${variant}`]"
-    :disabled="loading || disabled"
-  >
+  <button :type="type" :class="['base-button', `variant-${variant}`]" :disabled="loading || disabled">
     <span v-if="loading" class="loader"></span>
     <slot v-else />
   </button>
@@ -27,7 +23,7 @@ defineProps({
 <style scoped>
 .base-button {
   padding: 0.5rem 1.25rem;
-  border-radius: 4px;
+  border-radius: 6px;
   font-weight: 500;
   cursor: pointer;
   transition: all 0.2s ease;
@@ -37,13 +33,15 @@ defineProps({
   justify-content: center;
   min-width: 80px;
   gap: 0.5rem;
+  font-family: inherit;
 }
 
 .variant-primary {
   background-color: var(--primary-color);
   color: white;
 }
-.variant-primary:hover {
+
+.variant-primary:hover:not(:disabled) {
   filter: brightness(1.1);
 }
 
@@ -51,7 +49,8 @@ defineProps({
   background-color: var(--error-color);
   color: white;
 }
-.variant-danger:hover {
+
+.variant-danger:hover:not(:disabled) {
   filter: brightness(1.1);
 }
 
@@ -59,7 +58,8 @@ defineProps({
   background-color: var(--secondary-color);
   color: white;
 }
-.variant-neutral:hover {
+
+.variant-neutral:hover:not(:disabled) {
   filter: brightness(1.1);
 }
 
@@ -78,6 +78,8 @@ defineProps({
 }
 
 @keyframes spin {
-  to { transform: rotate(360deg); }
+  to {
+    transform: rotate(360deg);
+  }
 }
 </style>

@@ -35,24 +35,16 @@ function nextPage() {
 
 <template>
   <div v-if="totalPages > 1" class="pagination-wrapper">
-    <button 
-      class="pagination-btn" 
-      :disabled="currentPage === 1" 
-      @click="prevPage"
-    >
+    <button class="pagination-btn" :disabled="currentPage === 1" @click="prevPage" aria-label="Previous page">
       &lsaquo; Previous
     </button>
-    
+
     <div class="pagination-info">
       Page <strong>{{ currentPage }}</strong> of <strong>{{ totalPages }}</strong>
       <span class="total-items">({{ totalItems }} total)</span>
     </div>
-    
-    <button 
-      class="pagination-btn" 
-      :disabled="currentPage === totalPages" 
-      @click="nextPage"
-    >
+
+    <button class="pagination-btn" :disabled="currentPage === totalPages" @click="nextPage" aria-label="Next page">
       Next &rsaquo;
     </button>
   </div>
@@ -71,11 +63,12 @@ function nextPage() {
   background: white;
   border: 1px solid var(--border-color);
   padding: 0.5rem 1rem;
-  border-radius: 4px;
+  border-radius: 6px;
   cursor: pointer;
   font-size: 0.875rem;
   transition: all 0.2s ease;
   color: var(--text-primary);
+  font-family: inherit;
 }
 
 .pagination-btn:hover:not(:disabled) {
