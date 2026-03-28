@@ -2,11 +2,19 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from routers import user_routes
 from database import engine, Base
+from contextlib import asynccontextmanager
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # Create tables on startup
+    Base.metadata.create_all(bind=engine)
+    yield
 
 app = FastAPI(
     title="User Administration API",
     version="1.0.0",
-    description="API for managing users"
+    description="API for managing users",
+    lifespan=lifespan
 )
 
 # Include routers
@@ -25,11 +33,6 @@ app.add_middleware(
 @app.get("/")
 def read_root():
     return {"message": "User Administration API is running"}
-
-# Create tables on startup
-@app.on_event("startup")
-def on_startup():
-    Base.metadata.create_all(bind=engine)
 
 if __name__ == "__main__":
     import uvicorn
