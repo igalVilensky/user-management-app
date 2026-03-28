@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session
 from sqlalchemy.exc import IntegrityError
 from database import get_db
 from models import User
-from schemas import UserCreate, UserRead, UserUpdate
+from schemas import UserCreate, UserRead, UserUpdate, UserList
 
 router = APIRouter(
     prefix="/users",
@@ -13,7 +13,7 @@ router = APIRouter(
 # CREATE user
 @router.post("/", response_model=UserRead)
 def create_user(user_data: UserCreate, db: Session = Depends(get_db)):
-    user = User(**user_data.dict())
+    user = User(**user_data.model_dump(exclude_unset=True))
     db.add(user)
 
     try:
@@ -39,9 +39,11 @@ def suggest_username(first_name: str, last_name: str, db: Session = Depends(get_
     return {"username": username}
 
 # READ all users
-@router.get("/", response_model=list[UserRead])
+@router.get("/", response_model=UserList)
 def get_users(skip: int = 0, limit: int = 10, db: Session = Depends(get_db)):
-    return db.query(User).offset(skip).limit(limit).all()
+    users = db.query(User).order_by(User.id.desc()).offset(skip).limit(limit).all()
+    total_count = db.query(User).count()
+    return {"users": users, "total_count": total_count}
 
 # READ single user by ID
 @router.get("/{user_id}", response_model=UserRead)
@@ -58,7 +60,7 @@ def update_user(user_id: int, user_data: UserUpdate, db: Session = Depends(get_d
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
 
-    for key, value in user_data.dict(exclude_unset=True).items():
+    for key, value in user_data.model_dump(exclude_unset=True).items():
         setattr(user, key, value)
 
     try:

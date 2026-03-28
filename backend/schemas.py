@@ -22,3 +22,7 @@ class UserRead(UserBase):
 
     class Config:
         from_attributes = True
+
+class UserList(BaseModel):
+    users: list[UserRead]
+    total_count: int
