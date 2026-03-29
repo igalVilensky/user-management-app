@@ -14,16 +14,20 @@ defineProps({
   emptyText: {
     type: String,
     default: 'No users found in the system.'
+  },
+  ariaLabel: {
+    type: String,
+    default: 'Data table'
   }
 });
 </script>
 
 <template>
   <div class="base-table-container">
-    <table class="base-table">
+    <table class="base-table" :aria-label="ariaLabel">
       <thead>
         <tr>
-          <th v-for="col in columns" :key="col.key" :style="{ width: col.width }">
+          <th v-for="col in columns" :key="col.key" :style="{ width: col.width }" scope="col">
             {{ col.label }}
           </th>
         </tr>
@@ -32,7 +36,7 @@ defineProps({
       <tbody>
         <!-- Loading -->
         <template v-if="loading">
-          <tr v-for="i in 5" :key="`skeleton-${i}`">
+          <tr v-for="i in 5" :key="`skeleton-${i}`" aria-hidden="true">
             <td v-for="col in columns" :key="col.key">
               <BaseSkeleton width="85%" height="1.25rem" />
             </td>
@@ -88,7 +92,7 @@ th {
   border-bottom: 2px solid var(--border-color);
   text-align: left;
   font-weight: 600;
-  color: var(--text-secondary);
+  color: var(--text-primary);
   font-size: 0.875rem;
   white-space: nowrap;
 }

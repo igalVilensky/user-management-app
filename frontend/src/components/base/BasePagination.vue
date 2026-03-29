@@ -45,11 +45,12 @@ function nextPage() {
 </script>
 
 <template>
-  <div class="pagination-wrapper">
+  <div class="pagination-wrapper" role="navigation" aria-label="Pagination">
     <!-- Rows per page -->
     <div class="pagination-limit">
-      <label for="itemsPerPage">Rows:</label>
-      <select id="itemsPerPage" class="pagination-select" :value="itemsPerPage" @change="onItemsPerPageChange">
+      <label for="itemsPerPage" id="rows-label">Rows per page:</label>
+      <select id="itemsPerPage" class="pagination-select" :value="itemsPerPage" @change="onItemsPerPageChange"
+        aria-labelledby="rows-label">
         <option v-for="option in rowsOptions" :key="option" :value="option">
           {{ option }}
         </option>
@@ -58,22 +59,24 @@ function nextPage() {
 
     <!-- Controls -->
     <div v-if="totalPages > 1" class="pagination-controls">
-      <button class="pagination-btn" :disabled="currentPage === 1" @click="prevPage" aria-label="Previous page">
+      <button class="pagination-btn" :disabled="currentPage === 1" @click="prevPage" aria-label="Previous page"
+        :aria-disabled="currentPage === 1">
         ‹
       </button>
 
-      <div class="pagination-info">
+      <div class="pagination-info" aria-live="polite" aria-label="Current page">
         {{ currentPage }} / {{ totalPages }}
       </div>
 
-      <button class="pagination-btn" :disabled="currentPage === totalPages" @click="nextPage" aria-label="Next page">
+      <button class="pagination-btn" :disabled="currentPage === totalPages" @click="nextPage" aria-label="Next page"
+        :aria-disabled="currentPage === totalPages">
         ›
       </button>
     </div>
 
     <!-- Total -->
-    <div class="pagination-total">
-      {{ totalItems }} users
+    <div class="pagination-total" aria-live="polite">
+      {{ totalItems }} total {{ totalItems === 1 ? 'user' : 'users' }}
     </div>
   </div>
 </template>

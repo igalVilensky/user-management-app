@@ -36,9 +36,9 @@ function closeToast() {
 
 <template>
   <Transition name="slide-fade">
-    <div v-if="visible" :class="['base-toast', `type-${type}`]" role="alert">
+    <div v-if="visible" :class="['base-toast', `type-${type}`]" role="alert" aria-live="assertive">
       <div class="toast-content">
-        <span class="toast-icon">{{ type === 'success' ? '✓' : '!' }}</span>
+        <span class="toast-icon" aria-hidden="true">{{ type === 'success' ? '✓' : '!' }}</span>
         <span class="toast-message">{{ message }}</span>
       </div>
       <button class="toast-close" @click="closeToast" aria-label="Close notification">&times;</button>

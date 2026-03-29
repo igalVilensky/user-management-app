@@ -40,6 +40,11 @@ const isEditing = ref(false);
 const isDeleting = ref(false);
 let debounceTimer = null;
 
+// Accessibility: Focus management for modals
+const createModalRef = ref(null);
+const editModalRef = ref(null);
+const deleteModalRef = ref(null);
+
 // Validation States
 const newUserErrors = ref({
   first_name: "",
@@ -199,6 +204,11 @@ async function handleAddUser() {
     showToast("User created successfully!");
   } catch (err) {
     createError.value = err.message || "Failed to create user";
+    // Announce error to screen readers
+    const errorElement = document.querySelector('[role="alert"]');
+    if (errorElement) {
+      errorElement.focus();
+    }
   } finally {
     isCreating.value = false;
   }
@@ -277,27 +287,38 @@ const tableColumns = [
 <template>
   <div class="container">
     <header class="dashboard-header">
-      <h1>User Administration</h1>
-      <BaseButton variant="primary" @click="showCreateModal = true">
+      <h1 tabindex="-1">User Administration</h1>
+      <BaseButton variant="primary" @click="showCreateModal = true" aria-label="Add new user">
         + Add User
       </BaseButton>
     </header>
 
+    <!-- Add live region for screen reader announcements -->
+    <div class="sr-only" aria-live="polite" role="status">
+      {{ successMessage }}
+    </div>
+
     <BaseCard>
-      <div v-if="error" class="cta-container error-state">
+      <!-- Live region for error announcements -->
+      <div v-if="error" class="cta-container error-state" role="alert" aria-live="assertive">
         <p style="color: var(--error-color)">{{ error }}</p>
         <BaseButton variant="neutral" @click="fetchUsers">Try Again</BaseButton>
       </div>
 
       <template v-else>
-        <BaseTable :columns="tableColumns" :data="users" :loading="loading" empty-text="No users found in the system.">
+        <BaseTable :columns="tableColumns" :data="users" :loading="loading" empty-text="No users found in the system."
+          aria-label="Users table">
           <template #cell(actions)="{ row }">
             <div class="actions-cell">
-              <BaseButton variant="neutral" @click="openEditModal(row)">
-                <span class="icon">✏️</span> Edit
+              <BaseButton variant="neutral" @click="openEditModal(row)"
+                :aria-label="`Edit user ${row.first_name} ${row.last_name}`">
+                <span class="icon" aria-hidden="true">✏️</span>
+                Edit
               </BaseButton>
-              <BaseButton variant="danger" @click="confirmDelete(row)">
-                <span class="icon">🗑</span> Delete
+              <BaseButton variant="danger" @click="confirmDelete(row)"
+                :aria-label="`Delete user ${row.first_name} ${row.last_name}`">
+                <span class="icon" aria-hidden="true">🗑</span>
+                Delete
               </BaseButton>
             </div>
           </template>
@@ -309,79 +330,81 @@ const tableColumns = [
           </template>
         </BaseTable>
 
-        <BasePagination v-model:currentPage="page" v-model:itemsPerPage="limit" :totalItems="totalUsers" />
+        <BasePagination v-model:currentPage="page" v-model:itemsPerPage="limit" :totalItems="totalUsers"
+          aria-label="User list pagination" />
       </template>
     </BaseCard>
 
     <!-- ========== CREATE USER MODAL ========== -->
-    <BaseModal :show="showCreateModal" title="Create New User" @close="showCreateModal = false">
+    <BaseModal ref="createModalRef" :show="showCreateModal" title="Create New User" @close="showCreateModal = false">
       <template #default>
-        <div v-if="createError" class="error-message">
+        <div v-if="createError" class="error-message" role="alert" aria-live="assertive">
           {{ createError }}
         </div>
         <div class="modal-form">
           <BaseInput v-model="newUser.first_name" label="First Name" placeholder="Enter first name"
-            :error="newUserErrors.first_name" required />
+            :error="newUserErrors.first_name" required autocomplete="given-name" />
           <BaseInput v-model="newUser.last_name" label="Last Name" placeholder="Enter last name"
-            :error="newUserErrors.last_name" required />
+            :error="newUserErrors.last_name" required autocomplete="family-name" />
           <BaseInput v-model="newUser.username" label="Username" placeholder="Confirm or change username"
-            :error="newUserErrors.username" @input="onUsernameInput" required />
+            :error="newUserErrors.username" @input="onUsernameInput" required autocomplete="username" />
           <BaseInput v-model="newUser.phone_number" label="Telephone Number" placeholder="e.g. +49 123 456789"
-            :error="newUserErrors.phone_number" />
-          <BaseInput v-model="newUser.address" label="Address" placeholder="Street, City, ZIP" />
+            :error="newUserErrors.phone_number" autocomplete="tel" />
+          <BaseInput v-model="newUser.address" label="Address" placeholder="Street, City, ZIP"
+            autocomplete="street-address" />
         </div>
       </template>
 
       <template #footer>
-        <BaseButton variant="neutral" @click="resetForm">
-          Reset
-        </BaseButton>
-        <BaseButton variant="primary" :loading="isCreating" :disabled="hasCreateErrors" @click="handleAddUser">
+        <BaseButton variant="neutral" @click="resetForm">Reset</BaseButton>
+        <BaseButton variant="primary" :loading="isCreating" :disabled="hasCreateErrors" @click="handleAddUser"
+          aria-label="Create new user">
           Create User
         </BaseButton>
       </template>
     </BaseModal>
 
+
+
     <!-- ========== EDIT USER MODAL ========== -->
-    <BaseModal :show="showEditModal" title="Edit User" @close="showEditModal = false">
+    <BaseModal ref="editModalRef" :show="showEditModal" title="Edit User" @close="showEditModal = false">
       <template #default>
-        <div v-if="editError" class="error-message">
+        <div v-if="editError" class="error-message" role="alert" aria-live="assertive">
           {{ editError }}
         </div>
-
         <div v-if="editingUser" class="modal-form">
-          <BaseInput v-model="editingUser.first_name" label="First Name" :error="editingUserErrors.first_name"
-            required />
-          <BaseInput v-model="editingUser.last_name" label="Last Name" :error="editingUserErrors.last_name" required />
+          <BaseInput v-model="editingUser.first_name" label="First Name" :error="editingUserErrors.first_name" required
+            autocomplete="given-name" />
+          <BaseInput v-model="editingUser.last_name" label="Last Name" :error="editingUserErrors.last_name" required
+            autocomplete="family-name" />
           <BaseInput v-model="editingUser.username" label="Username" :error="editingUserErrors.username"
-            @input="onEditUsernameInput" required />
-          <BaseInput v-model="editingUser.phone_number" label="Telephone Number"
-            :error="editingUserErrors.phone_number" />
-          <BaseInput v-model="editingUser.address" label="Address" />
+            @input="onEditUsernameInput" required autocomplete="username" />
+          <BaseInput v-model="editingUser.phone_number" label="Telephone Number" :error="editingUserErrors.phone_number"
+            autocomplete="tel" />
+          <BaseInput v-model="editingUser.address" label="Address" autocomplete="street-address" />
         </div>
       </template>
 
       <template #footer>
-        <BaseButton variant="neutral" @click="showEditModal = false">
-          Cancel
-        </BaseButton>
+        <BaseButton variant="neutral" @click="showEditModal = false">Cancel</BaseButton>
         <BaseButton variant="primary" :loading="isEditing" :disabled="hasEditErrors || !hasChanges"
-          @click="handleUpdateUser">
+          @click="handleUpdateUser" aria-label="Save user changes">
           Save Changes
         </BaseButton>
       </template>
     </BaseModal>
 
     <!-- ========== DELETE CONFIRMATION MODAL ========== -->
-    <BaseModal :show="showDeleteModal" title="Confirm Deletion" @close="showDeleteModal = false">
-      <p v-if="userToDelete">
+    <BaseModal ref="deleteModalRef" :show="showDeleteModal" title="Confirm Deletion" @close="showDeleteModal = false">
+      <p v-if="userToDelete" id="delete-confirmation-message">
         Are you sure you want to delete user <strong>{{ userToDelete.first_name }} {{ userToDelete.last_name
         }}</strong>?
         <br>This action cannot be undone.
       </p>
       <template #footer>
         <BaseButton variant="neutral" @click="showDeleteModal = false">Cancel</BaseButton>
-        <BaseButton variant="danger" :loading="isDeleting" @click="handleDelete">
+        <BaseButton variant="danger" :loading="isDeleting" @click="handleDelete"
+          aria-label="Confirm permanent deletion">
           Delete Forever
         </BaseButton>
       </template>

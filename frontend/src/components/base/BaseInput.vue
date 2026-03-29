@@ -11,7 +11,12 @@ defineProps({
   required: {
     type: Boolean,
     default: false
-  }
+  },
+  id: {
+    type: String,
+    default: () => `input-${Math.random().toString(36).substr(2, 9)}`
+  },
+  autocomplete: String
 });
 
 defineEmits(['update:modelValue']);
@@ -19,13 +24,17 @@ defineEmits(['update:modelValue']);
 
 <template>
   <div class="base-input-wrapper">
-    <label v-if="label" class="input-label">
+    <label v-if="label" :for="id" class="input-label">
       {{ label }}
-      <span v-if="required" class="required-star">*</span>
+      <span v-if="required" class="required-star" aria-hidden="true">*</span>
     </label>
-    <input :type="type" :value="modelValue" @input="$emit('update:modelValue', $event.target.value)" class="base-input"
-      :class="{ 'has-error': error }" :placeholder="placeholder" />
-    <span v-if="error" class="input-error">{{ error }}</span>
+    <input :id="id" :type="type" :value="modelValue" @input="$emit('update:modelValue', $event.target.value)"
+      class="base-input" :class="{ 'has-error': error }" :placeholder="placeholder" :required="required"
+      :aria-invalid="!!error" :aria-describedby="error ? `${id}-error` : null" :aria-required="required"
+      :autocomplete="autocomplete" />
+    <span v-if="error" :id="`${id}-error`" class="input-error" role="alert">
+      {{ error }}
+    </span>
   </div>
 </template>
 

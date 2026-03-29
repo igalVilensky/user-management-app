@@ -8,6 +8,35 @@
   --text-secondary: #6c757d;
   --border-color: #dee2e6;
   --hover-bg: #f1f3f5;
+
+  /* Accessibility: Focus ring colors */
+  --focus-ring-color: rgba(0, 138, 0, 0.4);
+  --focus-ring-offset: 2px;
+  --focus-ring-width: 3px;
+}
+
+/* Accessibility: Global focus styles */
+:focus-visible {
+  outline: var(--focus-ring-width) solid var(--primary-color);
+  outline-offset: var(--focus-ring-offset);
+  border-radius: 4px;
+}
+
+/* Accessibility: Skip to content link for keyboard users */
+.skip-to-content {
+  position: absolute;
+  top: -40px;
+  left: 0;
+  background: var(--primary-color);
+  color: white;
+  padding: 8px 16px;
+  text-decoration: none;
+  z-index: 9999;
+  border-radius: 0 0 4px 0;
+}
+
+.skip-to-content:focus {
+  top: 0;
 }
 
 body {
@@ -17,6 +46,13 @@ body {
   margin: 0;
   padding: 0;
   line-height: 1.5;
+}
+
+/* Accessibility: Ensure text is readable when zoomed */
+@media screen and (min-width: 0px) {
+  body {
+    font-size: 16px;
+  }
 }
 
 #app {
@@ -67,6 +103,7 @@ table {
   margin-bottom: 1rem;
 }
 
+/* Accessibility: Add scope to table headers */
 th {
   text-align: left;
   padding: 1rem;
@@ -85,7 +122,14 @@ tr:hover {
   background-color: var(--hover-bg);
 }
 
-/* Animations */
+/* Accessibility: Ensure table has sufficient contrast in all states */
+tr:focus-within {
+  background-color: var(--hover-bg);
+  outline: var(--focus-ring-width) solid var(--primary-color);
+  outline-offset: -1px;
+}
+
+/* Animations - Respect reduced motion */
 .fade-enter-active,
 .fade-leave-active {
   transition: opacity 0.3s ease;
@@ -96,7 +140,23 @@ tr:hover {
   opacity: 0;
 }
 
-/* Modal Styling */
+@media (prefers-reduced-motion: reduce) {
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+
+  .fade-enter-active,
+  .fade-leave-active {
+    transition: none;
+  }
+}
+
+/* Modal Styling - Accessibility improvements */
 .modal-overlay {
   position: fixed;
   top: 0;
@@ -110,13 +170,19 @@ tr:hover {
   z-index: 1000;
 }
 
+/* Accessibility: Trap focus within modal */
 .modal-content {
   background: white;
   padding: 2rem;
   border-radius: 8px;
   width: 500px;
   max-width: 90%;
+  max-height: 90vh;
+  overflow-y: auto;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+
+  /* Accessibility: Ensure modal content is scrollable if needed */
+  scrollbar-width: thin;
 }
 
 /* CTA & Alerts */
@@ -126,4 +192,79 @@ tr:hover {
   background: var(--card-bg);
   border-radius: 8px;
   border: 2px dashed var(--border-color);
+}
+
+/* Accessibility: Utility classes */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}
+
+/* Accessibility: Ensure color contrast for links and interactive elements */
+a,
+button,
+[role="button"] {
+  color: var(--primary-color);
+}
+
+a:focus-visible,
+button:focus-visible,
+[role="button"]:focus-visible {
+  outline: var(--focus-ring-width) solid var(--primary-color);
+  outline-offset: var(--focus-ring-offset);
+}
+
+/* Accessibility: High contrast support for focus indicators */
+@media (forced-colors: active) {
+  :focus-visible {
+    outline: 3px solid CanvasText;
+  }
+
+  .base-button:focus-visible {
+    outline: 3px solid CanvasText;
+  }
+}
+
+/* Accessibility: Ensure error messages are announced */
+[role="alert"] {
+  display: block;
+  animation: gentlePulse 0.3s ease;
+}
+
+@keyframes gentlePulse {
+  0% {
+    background-color: rgba(215, 0, 0, 0.05);
+  }
+
+  100% {
+    background-color: transparent;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [role="alert"] {
+    animation: none;
+  }
+}
+
+/* Accessibility: Ensure sufficient line height for readability */
+p,
+li,
+.form-label,
+.error-message {
+  line-height: 1.5;
+}
+
+/* Accessibility: Ensure inputs have visible labels */
+label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-weight: 500;
 }
