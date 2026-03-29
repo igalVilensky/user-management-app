@@ -313,7 +313,7 @@ const tableColumns = [
       </template>
     </BaseCard>
 
-    <!-- Create User Modal -->
+    <!-- ========== CREATE USER MODAL ========== -->
     <BaseModal :show="showCreateModal" title="Create New User" @close="showCreateModal = false">
       <template #default>
         <div v-if="createError" class="error-message">
@@ -342,7 +342,7 @@ const tableColumns = [
       </template>
     </BaseModal>
 
-    <!-- Edit User Modal -->
+    <!-- ========== EDIT USER MODAL ========== -->
     <BaseModal :show="showEditModal" title="Edit User" @close="showEditModal = false">
       <template #default>
         <div v-if="editError" class="error-message">
@@ -372,7 +372,7 @@ const tableColumns = [
       </template>
     </BaseModal>
 
-    <!-- Delete Confirmation Modal -->
+    <!-- ========== DELETE CONFIRMATION MODAL ========== -->
     <BaseModal :show="showDeleteModal" title="Confirm Deletion" @close="showDeleteModal = false">
       <p v-if="userToDelete">
         Are you sure you want to delete user <strong>{{ userToDelete.first_name }} {{ userToDelete.last_name
