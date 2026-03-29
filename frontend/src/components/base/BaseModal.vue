@@ -127,4 +127,14 @@ defineEmits(['close']);
     padding: 1.25rem 1.5rem;
   }
 }
+
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.2s ease;
+}
+
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
+}
 </style>

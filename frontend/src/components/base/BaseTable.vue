@@ -28,7 +28,9 @@ defineProps({
           </th>
         </tr>
       </thead>
+
       <tbody>
+        <!-- Loading -->
         <template v-if="loading">
           <tr v-for="i in 5" :key="`skeleton-${i}`">
             <td v-for="col in columns" :key="col.key">
@@ -37,16 +39,20 @@ defineProps({
           </tr>
         </template>
 
+        <!-- Data -->
         <template v-else-if="data.length > 0">
           <tr v-for="(row, idx) in data" :key="row.id || idx">
             <td v-for="col in columns" :key="col.key" :data-label="col.label">
-              <slot :name="`cell(${col.key})`" :row="row" :value="row[col.key]">
-                {{ row[col.key] }}
-              </slot>
+              <span class="cell-content">
+                <slot :name="`cell(${col.key})`" :row="row" :value="row[col.key]">
+                  {{ row[col.key] }}
+                </slot>
+              </span>
             </td>
           </tr>
         </template>
 
+        <!-- Empty -->
         <tr v-else>
           <td :colspan="columns.length" class="empty-cell">
             <div class="empty-state">
@@ -75,6 +81,7 @@ defineProps({
   table-layout: fixed;
 }
 
+/* Header */
 th {
   padding: 1rem 0.75rem;
   background: var(--hover-bg);
@@ -86,6 +93,7 @@ th {
   white-space: nowrap;
 }
 
+/* Cells (desktop) */
 td {
   padding: 1rem 0.75rem;
   border-bottom: 1px solid var(--border-color);
@@ -99,6 +107,15 @@ tr:last-child td {
   border-bottom: none;
 }
 
+/* Shared content wrapper */
+.cell-content {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Empty */
 .empty-cell {
   padding: 3rem 1rem;
   text-align: center;
@@ -112,7 +129,9 @@ tr:last-child td {
   color: var(--text-secondary);
 }
 
-/* Mobile Card Layout */
+/* =========================
+   Mobile Card Layout
+========================= */
 @media (max-width: 640px) {
   .base-table {
     min-width: unset;
@@ -134,22 +153,33 @@ tr:last-child td {
   .base-table td {
     display: flex;
     justify-content: space-between;
+    align-items: center;
     padding: 0.75rem 0;
     border-bottom: 1px dashed var(--border-color);
-    white-space: normal;
-    overflow: visible;
+    overflow: hidden;
   }
 
   .base-table td:last-child {
     border-bottom: none;
   }
 
+  /* label */
   .base-table td::before {
     content: attr(data-label);
     font-weight: 600;
     color: var(--text-secondary);
     margin-right: 1rem;
-    flex: 1;
+    flex: 0 0 auto;
+  }
+
+  /* value */
+  .cell-content {
+    min-width: 0;
+    max-width: 60%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    text-align: right;
   }
 
   .actions-cell {

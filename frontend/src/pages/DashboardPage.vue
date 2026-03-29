@@ -1,5 +1,5 @@
 <script setup>
-import { onMounted, ref, watch } from "vue";
+import { onMounted, ref, watch, computed } from "vue";
 import { useUsers } from "../composables/useUsers";
 import { suggestUsername } from "../services/api";
 
@@ -11,7 +11,6 @@ import BaseTable from "../components/base/BaseTable.vue";
 import BasePagination from "../components/base/BasePagination.vue";
 import BaseCard from "../components/base/BaseCard.vue";
 import BaseToast from "../components/base/BaseToast.vue";
-import { computed } from "vue";
 
 const {
   users,
@@ -31,6 +30,7 @@ const showEditModal = ref(false);
 const showDeleteModal = ref(false);
 const userToDelete = ref(null);
 const editingUser = ref(null);
+const originalEditingUser = ref(null);
 const successMessage = ref("");
 const createError = ref("");
 const editError = ref("");
@@ -53,6 +53,12 @@ const editingUserErrors = ref({
   last_name: "",
   username: "",
   phone_number: ""
+});
+
+const hasChanges = computed(() => {
+  if (!editingUser.value || !originalEditingUser.value) return false;
+
+  return JSON.stringify(editingUser.value) !== JSON.stringify(originalEditingUser.value);
 });
 
 function validateField(field, value) {
@@ -154,7 +160,7 @@ watch(() => newUser.value.phone_number, (val) => {
   newUserErrors.value.phone_number = validateField('phone_number', val);
 });
 
-// Watch editing user for validation
+// Watch editing user for validation and changes
 watch(() => editingUser.value, (val) => {
   if (!val) return;
   editingUserErrors.value.first_name = validateField('first_name', val.first_name);
@@ -199,7 +205,8 @@ async function handleAddUser() {
 }
 
 function openEditModal(user) {
-  editingUser.value = { ...user };
+  originalEditingUser.value = JSON.parse(JSON.stringify(user));
+  editingUser.value = JSON.parse(JSON.stringify(user));
   editingUserErrors.value = {
     first_name: "",
     last_name: "",
@@ -217,6 +224,12 @@ function onEditUsernameInput() {
 
 async function handleUpdateUser() {
   if (!editingUser.value) return;
+
+  if (!hasChanges.value) {
+    showEditModal.value = false;
+    return;
+  }
+
   editError.value = "";
   isEditing.value = true;
   try {
@@ -337,11 +350,13 @@ const tableColumns = [
         </div>
 
         <div v-if="editingUser" class="modal-form">
-          <BaseInput v-model="editingUser.first_name" label="First Name" :error="editingUserErrors.first_name" />
-          <BaseInput v-model="editingUser.last_name" label="Last Name" :error="editingUserErrors.last_name" />
+          <BaseInput v-model="editingUser.first_name" label="First Name" :error="editingUserErrors.first_name"
+            required />
+          <BaseInput v-model="editingUser.last_name" label="Last Name" :error="editingUserErrors.last_name" required />
           <BaseInput v-model="editingUser.username" label="Username" :error="editingUserErrors.username"
-            @input="onEditUsernameInput" />
-          <BaseInput v-model="editingUser.phone_number" label="Telephone Number" :error="editingUserErrors.phone_number" />
+            @input="onEditUsernameInput" required />
+          <BaseInput v-model="editingUser.phone_number" label="Telephone Number"
+            :error="editingUserErrors.phone_number" />
           <BaseInput v-model="editingUser.address" label="Address" />
         </div>
       </template>
@@ -350,7 +365,8 @@ const tableColumns = [
         <BaseButton variant="neutral" @click="showEditModal = false">
           Cancel
         </BaseButton>
-        <BaseButton variant="primary" :loading="isEditing" :disabled="hasEditErrors" @click="handleUpdateUser">
+        <BaseButton variant="primary" :loading="isEditing" :disabled="hasEditErrors || !hasChanges"
+          @click="handleUpdateUser">
           Save Changes
         </BaseButton>
       </template>

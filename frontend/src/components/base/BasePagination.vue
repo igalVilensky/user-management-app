@@ -22,7 +22,9 @@ const props = defineProps({
 
 const emit = defineEmits(['update:currentPage', 'update:itemsPerPage']);
 
-const totalPages = computed(() => Math.ceil(props.totalItems / props.itemsPerPage));
+const totalPages = computed(() =>
+  Math.ceil(props.totalItems / props.itemsPerPage)
+);
 
 function onItemsPerPageChange(event) {
   emit('update:itemsPerPage', Number(event.target.value));
@@ -44,8 +46,9 @@ function nextPage() {
 
 <template>
   <div class="pagination-wrapper">
+    <!-- Rows per page -->
     <div class="pagination-limit">
-      <label for="itemsPerPage">Rows per page:</label>
+      <label for="itemsPerPage">Rows:</label>
       <select id="itemsPerPage" class="pagination-select" :value="itemsPerPage" @change="onItemsPerPageChange">
         <option v-for="option in rowsOptions" :key="option" :value="option">
           {{ option }}
@@ -53,22 +56,24 @@ function nextPage() {
       </select>
     </div>
 
+    <!-- Controls -->
     <div v-if="totalPages > 1" class="pagination-controls">
       <button class="pagination-btn" :disabled="currentPage === 1" @click="prevPage" aria-label="Previous page">
-        &lsaquo; Previous
+        ‹
       </button>
 
       <div class="pagination-info">
-        Page <strong>{{ currentPage }}</strong> of <strong>{{ totalPages }}</strong>
+        {{ currentPage }} / {{ totalPages }}
       </div>
 
       <button class="pagination-btn" :disabled="currentPage === totalPages" @click="nextPage" aria-label="Next page">
-        Next &rsaquo;
+        ›
       </button>
     </div>
 
+    <!-- Total -->
     <div class="pagination-total">
-      <strong>{{ totalItems }}</strong> total users
+      {{ totalItems }} users
     </div>
   </div>
 </template>
@@ -78,18 +83,21 @@ function nextPage() {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 1.5rem;
+  gap: 1rem;
+  flex-wrap: wrap;
   padding: 1rem 0;
   border-top: 1px solid var(--border-color);
   margin-top: 1rem;
 }
 
+/* Controls */
 .pagination-controls {
   display: flex;
   align-items: center;
-  gap: 1.25rem;
+  gap: 0.75rem;
 }
 
+/* Rows per page */
 .pagination-limit {
   display: flex;
   align-items: center;
@@ -98,32 +106,26 @@ function nextPage() {
   color: var(--text-secondary);
 }
 
+/* Select */
 .pagination-select {
   padding: 0.25rem 0.5rem;
   border: 1px solid var(--border-color);
   border-radius: 4px;
   background-color: white;
   color: var(--text-primary);
-  font-family: inherit;
   font-size: 0.875rem;
   cursor: pointer;
-  transition: border-color 0.2s;
 }
 
-.pagination-select:hover {
-  border-color: var(--primary-color);
-}
-
+/* Buttons */
 .pagination-btn {
   background: white;
   border: 1px solid var(--border-color);
-  padding: 0.4rem 0.8rem;
+  padding: 0.4rem 0.6rem;
   border-radius: 6px;
   cursor: pointer;
   font-size: 0.875rem;
   transition: all 0.2s ease;
-  color: var(--text-primary);
-  font-family: inherit;
 }
 
 .pagination-btn:hover:not(:disabled) {
@@ -137,15 +139,46 @@ function nextPage() {
   cursor: not-allowed;
 }
 
+/* Info */
 .pagination-info {
   font-size: 0.875rem;
   color: var(--text-secondary);
-  min-width: 100px;
+  min-width: 60px;
   text-align: center;
 }
 
+/* Total */
 .pagination-total {
   font-size: 0.875rem;
   color: var(--text-secondary);
+}
+
+/* =========================
+   Mobile Optimization
+========================= */
+@media (max-width: 640px) {
+  .pagination-wrapper {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.75rem;
+  }
+
+  .pagination-limit,
+  .pagination-total {
+    justify-content: space-between;
+  }
+
+  .pagination-controls {
+    justify-content: center;
+  }
+
+  .pagination-btn {
+    flex: 1;
+    padding: 0.6rem;
+  }
+
+  .pagination-info {
+    min-width: auto;
+  }
 }
 </style>
