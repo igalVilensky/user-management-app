@@ -347,7 +347,7 @@ const tableColumns = [
           <BaseInput v-model="newUser.last_name" label="Last Name" placeholder="Enter last name"
             :error="newUserErrors.last_name" required autocomplete="family-name" />
           <BaseInput v-model="newUser.username" label="Username" placeholder="Confirm or change username"
-            :error="newUserErrors.username" @input="onUsernameInput" required autocomplete="username" />
+            :error="newUserErrors.username" @input="onUsernameInput" required />
           <BaseInput v-model="newUser.phone_number" label="Telephone Number" placeholder="e.g. +49 123 456789"
             :error="newUserErrors.phone_number" autocomplete="tel" />
           <BaseInput v-model="newUser.address" label="Address" placeholder="Street, City, ZIP"
