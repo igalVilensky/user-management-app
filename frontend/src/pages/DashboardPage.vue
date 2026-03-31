@@ -452,4 +452,15 @@ const tableColumns = [
   font-size: 0.875rem;
   border-left: 3px solid var(--error-color, #d70000);
 }
+
+.base-button .button-content {
+  display: inline-flex;
+  align-items: center;
+}
+
+.base-button .button-content .icon {
+  display: inline-flex;
+  align-items: center;
+  margin-right: 0.2rem;
+}
 </style>
