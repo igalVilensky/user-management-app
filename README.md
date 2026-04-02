@@ -134,5 +134,3 @@ pytest
 - **Database Locked**: If multiple processes try to write to the SQLite database, you may see a "database locked" error. Use only one instance of the app or wait for operations to finish.
 - **Docker Networking**: In Docker, the frontend communicates with the backend via the container name or exposed port. Ensure `frontend/src/services/api.js` points to the correct backend address.
 
----
-*Created as part of a technical implementation exercise.*
