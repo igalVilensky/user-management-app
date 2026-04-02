@@ -1,199 +1,138 @@
 # 📊 User Administration Application
 
-A simple web application for managing users in a database with CRUD operations and automatic username suggestion.
+A modern, full-stack user management dashboard designed for efficient administrative tasks. Built with FastAPI and Vue.js 3, it offers real-time interactivity, automated username suggestions, and a premium component-based UI.
 
-## ✨ Features
+## ✨ Key Features
 
-* ✅ **Create, Read, Update, Delete** users
-* 🤖 **Automatic username suggestion** based on first and last name
-* 📄 **Pagination** for user list
-* 📱 **Responsive design** (desktop and mobile)
-* 🔍 **Input validation** (names, phone numbers)
-* 🔔 **Toast notifications** for user actions
+*   **⚡ Real-time CRUD**: Manage users with immediate UI feedback and toast notifications.
+*   **🤖 Smart Suggestions**: Automatically generates unique usernames based on first and last names.
+*   **📄 Seamless Pagination**: Handles large datasets with a robust pagination system.
+*   **🛡️ Data Integrity**: Inline validation for fields and phone number masks.
+*   **📱 Responsive & Premium UI**: A clean, modern interface that works across all devices.
+*   **🐳 Containerized**: Fully Dockerized for "one-click" development and deployment.
 
-## 🛠️ Tech Stack
+## 🛠️ Technology Stack
 
-* **Backend**: Python with FastAPI, SQLite, SQLAlchemy
-* **Frontend**: Vue.js 3 with Composition API
-* **Database**: SQLite
+### Backend
+- **Framework**: [FastAPI](https://fastapi.tiangolo.com/) (Python 3.12+)
+- **ORM**: [SQLAlchemy](https://www.sqlalchemy.org/) 2.0
+- **Database**: [SQLite](https://www.sqlite.org/) (File-based)
+- **Validation**: [Pydantic](https://docs.pydantic.dev/) v2
+- **Testing**: [Pytest](https://docs.pytest.org/)
 
-## 📋 Prerequisites
+### Frontend
+- **Framework**: [Vue.js 3](https://vuejs.org/) (Composition API)
+- **Tooling**: [Vite](https://vitejs.dev/)
+- **Routing**: [Vue Router](https://router.vuejs.org/)
+- **Styling**: Vanilla CSS with a modern design system.
+- **Components**: Reusable base component library (`BaseButton`, `BaseTable`, etc.)
 
-* Python 3.8 or higher
-* Node.js 16 or higher
-* npm or yarn
-* **Docker and Docker Compose** (Recommended)
+---
 
-## 🚀 Running with Docker (Quick Start)
+## 🚀 Getting Started
 
-The easiest way to run the application is using Docker Compose. This starts both the frontend and backend in isolated containers.
+### Option 1: Docker (Recommended)
+The easiest way to start the entire stack is using Docker Compose.
 
-```bash
-docker compose up --build -d
-```
+1.  **Clone the repository**:
+    ```bash
+    git clone <repo-url>
+    cd user-management-app
+    ```
+2.  **Start the services**:
+    ```bash
+    docker-compose up --build -d
+    ```
+    - Frontend: [http://localhost:5173](http://localhost:5173)
+    - Backend API: [http://localhost:8000/docs](http://localhost:8000/docs)
 
-* **Frontend**: [http://localhost:5173](http://localhost:5173)
-* **Backend API Docs**: [http://localhost:8000/docs](http://localhost:8000/docs)
+### Option 2: Local Development
 
-To stop the application:
-```bash
-docker compose down
-```
-
-## 🛠️ Manual Installation (Development)
-
-### 1. Backend Setup
-
+#### 1. Backend Setup
 ```bash
 cd backend
 python -m venv venv
-
-# On Linux/macOS
-source venv/bin/activate
-# On Windows
-venv\Scripts\activate
-
+# Windows: venv\Scripts\activate | macOS/Linux: source venv/bin/activate
 pip install -r requirements.txt
-```
-
-### 2. Frontend Setup
-
-```bash
-cd frontend
-npm install
-```
-
-## 🏃 Running the Application
-
-### 1. Start the Backend Server
-
-```bash
-cd backend
 python main.py
 ```
 
-The backend will run at [http://127.0.0.1:8000](http://127.0.0.1:8000)
-
-### 2. Start the Frontend Development Server
-
+#### 2. Frontend Setup
 ```bash
 cd frontend
+npm install
 npm run dev
 ```
 
-The frontend will run at [http://localhost:5173](http://localhost:5173)
-
-### 3. Running Tests
-
-```bash
-cd backend
-# On Windows
-venv\Scripts\pytest
-# On Linux/macOS
-./venv/bin/pytest
-```
-
-This will run the backend test suite (7 tests covering all CRUD operations).
-
-### 4. Access the Application
-
-Open your browser and navigate to [http://localhost:5173](http://localhost:5173)
-
-## 📡 API Endpoints
-
-| Method | Endpoint                | Description                           |
-| ------ | ----------------------- | ------------------------------------- |
-| GET    | /users/                 | Get paginated user list               |
-| GET    | /users/{id}             | Get single user                       |
-| POST   | /users/                 | Create new user                       |
-| PUT    | /users/{id}             | Update user                           |
-| DELETE | /users/{id}             | Delete user                           |
-| GET    | /users/suggest-username | Suggest username from first/last name |
+---
 
 ## 📁 Project Structure
 
 ```text
+.
 ├── backend/
 │   ├── routers/
-│   │   └── user_routes.py
+│   │   ├── __init__.py
+│   │   └── user_routes.py     # API endpoint definitions
 │   ├── tests/
-│   │   ├── conftest.py
-│   │   ├── test_main.py
-│   │   └── test_users.py
-│   ├── database.py
-│   ├── main.py
-│   ├── models.py
-│   ├── schemas.py
-│   └── requirements.txt
+│   │   ├── conftest.py        # Test configuration
+│   │   ├── test_main.py       # Root API tests
+│   │   └── test_users.py      # CRUD operation tests
+│   ├── database.py            # SQLite engine & session config
+│   ├── main.py                # FastAPI application entry
+│   ├── models.py              # SQLAlchemy database models
+│   ├── schemas.py             # Pydantic validation schemas
+│   ├── requirements.txt       # Python dependencies
+│   ├── Dockerfile             # Backend container config
+│   └── .dockerignore
 ├── frontend/
+│   ├── public/
 │   ├── src/
-│   │   ├── components/
-│   │   │   └── base/
-│   │   │       ├── BaseButton.vue
-│   │   │       ├── BaseCard.vue
-│   │   │       ├── BaseInput.vue
-│   │   │       ├── BaseModal.vue
-│   │   │       ├── BasePagination.vue
-│   │   │       ├── BaseSkeleton.vue
-│   │   │       ├── BaseTable.vue
-│   │   │       └── BaseToast.vue
-│   │   ├── composables/
-│   │   │   ├── useAsync.js
-│   │   │   └── useUsers.js
-│   │   ├── pages/
-│   │   │   ├── DashboardPage.vue
-│   │   │   └── NotFoundPage.vue
-│   │   ├── router/
-│   │   │   └── index.js
-│   │   ├── services/
-│   │   │   └── api.js
-│   │   ├── App.vue
-│   │   └── main.js
-│   ├── package.json
-│   └── vite.config.js
-└── README.md
+│   │   ├── assets/styles/     # Global CSS and themes
+│   │   ├── components/base/   # Atomic UI components
+│   │   ├── composables/       # Reusable logic (useUsers, useAsync)
+│   │   ├── pages/             # Main application views
+│   │   ├── router/            # Vue Router configuration
+│   │   ├── services/          # API communication (api.js)
+│   │   ├── App.vue            # Root component
+│   │   └── main.js            # Frontend entry point
+│   ├── package.json           # Dependencies and scripts
+│   ├── vite.config.js         # Build and dev server config
+│   ├── Dockerfile             # Frontend container config
+│   └── .dockerignore
+├── .gitignore
+├── README.md
+└── docker-compose.yml         # Container orchestration
 ```
 
-## 📖 Usage
+## 🧪 Testing
 
-### Creating a User
+The backend includes a comprehensive test suite covering all CRUD operations and specific edge cases like duplicate usernames.
 
-1. Click the "Add User" button ➕
-2. Enter first name and last name
-3. Username is automatically suggested 🤖 (you can modify it)
-4. Fill in optional fields (phone number, address)
-5. Click "Create User" ✅
+```bash
+cd backend
+# With venv active
+pytest
+```
 
-### Editing a User
+## 📡 API Endpoints Summary
 
-1. Click the "Edit" button next to a user ✏️
-2. Modify any fields
-3. Click "Save Changes" 💾
+| Method | Endpoint | Description |
+| :--- | :--- | :--- |
+| **GET** | `/users/` | Fetch paginated list of users |
+| **POST** | `/users/` | Register a new user |
+| **GET** | `/users/{id}` | Retrieve specific user details |
+| **PUT** | `/users/{id}` | Update existing user information |
+| **DELETE** | `/users/{id}` | Remove a user record |
+| **GET** | `/users/suggest-username` | Get an algorithmic username suggestion |
 
-### Deleting a User
+---
 
-1. Click the "Delete" button next to a user 🗑️
-2. Confirm deletion in the modal ⚠️
+## 🛠️ Troubleshooting
 
-## 🔧 Troubleshooting
+- **CORS Errors**: Ensure the backend `main.py` has the correct `allow_origins`. Default development origin is `http://localhost:5173`.
+- **Database Locked**: If multiple processes try to write to the SQLite database, you may see a "database locked" error. Use only one instance of the app or wait for operations to finish.
+- **Docker Networking**: In Docker, the frontend communicates with the backend via the container name or exposed port. Ensure `frontend/src/services/api.js` points to the correct backend address.
 
-### Backend won't start
-
-* Ensure port 8000 is not in use
-* Check if SQLite has write permissions in the backend folder
-* Run `pip install -r requirements.txt` again
-
-### Frontend won't start
-
-* Ensure port 5173 is not in use
-* Run `npm install` again
-* Delete `node_modules` and run `npm install` fresh
-
-### CORS errors
-
-* Ensure backend is running on [http://127.0.0.1:8000](http://127.0.0.1:8000)
-* Check that CORS middleware in `main.py` allows frontend origin
-
-## 📝 License
-
-This project was created for assessment purposes.
+---
+*Created as part of a technical implementation exercise.*
