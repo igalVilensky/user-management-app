@@ -29,6 +29,33 @@ A modern, full-stack user management dashboard designed for efficient administra
 
 ---
 
+## 🎨 Design Highlights
+
+- **Username suggestion handled on the backend** to ensure uniqueness and consistency.
+- **Clean separation of concerns** between routers, schemas, and models for maintainability.
+- **Reusable frontend logic** via Vue composables (e.g., `useUsers`, `useAsync`).
+- **Dockerized setup** ensuring consistent and reproducible environments across development and deployment.
+
+---
+
+## ♿ Accessibility
+
+- **Full keyboard navigation support** (tab-based interaction).
+- **Accessible form inputs** with proper labeling and validation feedback.
+- **Modal focus management** to ensure correct accessibility for assistive technologies.
+
+---
+
+## 🛡️ Error Handling
+
+- **Robust error handling across backend and frontend**:
+  - Backend enforces strict validation and handles database integrity errors gracefully (e.g., unique constraints).
+  - API explicitly returns consistent HTTP error responses (e.g., `400 Bad Request`, `422 Unprocessable Entity`, `404 Not Found`).
+  - Frontend (`api.js`) maps HTTP errors and 422 validations into user-friendly messages.
+  - Frontend UI propagates and transparently displays errors in real-time within forms and across async operations.
+
+---
+
 ## 🚀 Getting Started
 
 ### Option 1: Docker (Recommended)
@@ -125,6 +152,39 @@ pytest
 | **PUT** | `/users/{id}` | Update existing user information |
 | **DELETE** | `/users/{id}` | Remove a user record |
 | **GET** | `/users/suggest-username` | Get an algorithmic username suggestion |
+
+---
+
+## 🛡️ Production Considerations
+
+- **Database**: Replace SQLite with PostgreSQL for higher concurrency and ACID compliance in production.
+- **Security**: Add a robust authentication and authorization layer (e.g., JWT, OAuth2).
+- **Observability**: Implement structured logging, rate limiting, and health checks.
+
+---
+
+## 🧩 Alternative Architecture (Hexagonal)
+
+In addition to the main implementation, I explored a second approach using a **hexagonal (ports & adapters)** architecture in a separate branch.
+
+This version explicitly separates:
+- **Domain layer** (business entities and logic)
+- **Application layer** (services and use cases)
+- **Ports & Adapters** (interfaces and infrastructure implementations)
+
+Example structure from that approach:
+
+```text
+backend/
+├── domain/
+│   ├── entities/
+│   └── ports/
+├── services/
+├── adapters/
+│   ├── db/
+│   └── web/
+└── infrastructure/
+```
 
 ---
 
