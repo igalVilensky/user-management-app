@@ -22,8 +22,25 @@ A simple web application for managing users in a database with CRUD operations a
 * Python 3.8 or higher
 * Node.js 16 or higher
 * npm or yarn
+* **Docker and Docker Compose** (Recommended)
 
-## 🚀 Installation
+## 🚀 Running with Docker (Quick Start)
+
+The easiest way to run the application is using Docker Compose. This starts both the frontend and backend in isolated containers.
+
+```bash
+docker compose up --build -d
+```
+
+* **Frontend**: [http://localhost:5173](http://localhost:5173)
+* **Backend API Docs**: [http://localhost:8000/docs](http://localhost:8000/docs)
+
+To stop the application:
+```bash
+docker compose down
+```
+
+## 🛠️ Manual Installation (Development)
 
 ### 1. Backend Setup
 
