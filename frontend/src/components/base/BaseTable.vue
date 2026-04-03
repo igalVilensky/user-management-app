@@ -1,7 +1,7 @@
 <script setup>
 import BaseSkeleton from './BaseSkeleton.vue';
 
-defineProps({
+const props = defineProps({
   columns: {
     type: Array,
     required: true
@@ -18,8 +18,24 @@ defineProps({
   ariaLabel: {
     type: String,
     default: 'Data table'
+  },
+  sortBy: {
+    type: String,
+    default: null
+  },
+  sortOrder: {
+    type: String,
+    default: 'asc'
   }
 });
+
+const emit = defineEmits(['sort']);
+
+function handleSort(col) {
+  if (col.sortable) {
+    emit('sort', col.key);
+  }
+}
 </script>
 
 <template>
@@ -27,8 +43,18 @@ defineProps({
     <table class="base-table" :aria-label="ariaLabel">
       <thead>
         <tr>
-          <th v-for="col in columns" :key="col.key" :style="{ width: col.width }" scope="col">
-            {{ col.label }}
+          <th v-for="col in columns" :key="col.key" :style="{ width: col.width }" scope="col"
+            :class="{ 'sortable': col.sortable }" @click="handleSort(col)"
+            :aria-sort="props.sortBy === col.key ? (props.sortOrder === 'asc' ? 'ascending' : 'descending') : 'none'">
+            <div class="th-content">
+              {{ col.label }}
+              <span v-if="col.sortable" class="sort-indicator">
+                <template v-if="props.sortBy === col.key">
+                  {{ props.sortOrder === 'asc' ? '↑' : '↓' }}
+                </template>
+                <template v-else>↕</template>
+              </span>
+            </div>
           </th>
         </tr>
       </thead>
@@ -95,6 +121,26 @@ th {
   color: var(--text-primary);
   font-size: 0.875rem;
   white-space: nowrap;
+}
+
+th.sortable {
+  cursor: pointer;
+  user-select: none;
+}
+
+th.sortable:hover {
+  background: var(--border-color);
+}
+
+.th-content {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.sort-indicator {
+  color: var(--text-secondary);
+  font-size: 0.8em;
 }
 
 /* Cells (desktop) */
