@@ -6,7 +6,7 @@ A modern, full-stack user management dashboard designed for efficient administra
 
 *   **⚡ Real-time CRUD**: Manage users with immediate UI feedback and toast notifications.
 *   **🤖 Smart Suggestions**: Automatically generates unique usernames based on first and last names.
-*   **📄 Seamless Pagination**: Handles large datasets with a robust pagination system.
+*   **📄 Seamless Pagination & Sorting**: Handles large datasets with a robust pagination system and dynamic column sorting.
 *   **🛡️ Data Integrity**: Inline validation for fields and phone number masks.
 *   **📱 Responsive & Premium UI**: A clean, modern interface that works across all devices.
 *   **🐳 Containerized**: Fully Dockerized for "one-click" development and deployment.

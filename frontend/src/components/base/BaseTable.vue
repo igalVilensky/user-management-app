@@ -75,7 +75,12 @@ function handleSort(col) {
             <td v-for="col in columns" :key="col.key" :data-label="col.label">
               <span class="cell-content">
                 <slot :name="`cell(${col.key})`" :row="row" :value="row[col.key]">
-                  {{ row[col.key] }}
+                  <template v-if="row[col.key] !== null && row[col.key] !== undefined && row[col.key] !== ''">
+                    {{ row[col.key] }}
+                  </template>
+                  <template v-else>
+                    <span class="empty-badge">Not provided</span>
+                  </template>
                 </slot>
               </span>
             </td>
@@ -163,6 +168,20 @@ tr:last-child td {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.empty-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.25rem 0.6rem;
+  background-color: var(--hover-bg);
+  color: var(--text-secondary);
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  line-height: 1;
+  letter-spacing: 0.02em;
 }
 
 /* Empty */
