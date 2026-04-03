@@ -11,6 +11,8 @@ export function useUsers() {
     const totalUsers = ref(0);
     const page = ref(1);
     const limit = ref(10);
+    const sortBy = ref(null);
+    const sortOrder = ref('asc');
     const loading = ref(false);
     const error = ref(null);
     const creating = ref(false);
@@ -22,7 +24,7 @@ export function useUsers() {
         error.value = null;
         try {
             const skip = (page.value - 1) * limit.value;
-            const res = await getUsers(skip, limit.value);
+            const res = await getUsers(skip, limit.value, sortBy.value, sortOrder.value);
             users.value = res.users;
             totalUsers.value = res.total_count;
         } catch (err) {
@@ -83,6 +85,8 @@ export function useUsers() {
         totalUsers,
         page,
         limit,
+        sortBy,
+        sortOrder,
         loading,
         error,
         creating,

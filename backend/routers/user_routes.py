@@ -1,4 +1,5 @@
 import re
+from typing import Optional
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import IntegrityError
@@ -55,9 +56,20 @@ def suggest_username(
 def get_users(
     skip: int = Query(0, ge=0), 
     limit: int = Query(10, ge=1, le=100), 
+    sort_by: Optional[str] = Query(None),
+    sort_order: Optional[str] = Query("asc"),
     db: Session = Depends(get_db)
 ):
-    users = db.query(User).order_by(User.id.desc()).offset(skip).limit(limit).all()
+    query = db.query(User)
+    
+    if sort_by == 'first_name':
+        query = query.order_by(User.first_name.desc() if sort_order == 'desc' else User.first_name.asc())
+    elif sort_by == 'last_name':
+        query = query.order_by(User.last_name.desc() if sort_order == 'desc' else User.last_name.asc())
+    else:
+        query = query.order_by(User.id.desc())
+        
+    users = query.offset(skip).limit(limit).all()
     total_count = db.query(User).count()
     return {"users": users, "total_count": total_count}
 

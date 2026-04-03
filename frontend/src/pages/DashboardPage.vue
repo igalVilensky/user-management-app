@@ -17,6 +17,8 @@ const {
   totalUsers,
   page,
   limit,
+  sortBy,
+  sortOrder,
   loading,
   error,
   fetchUsers,
@@ -119,10 +121,25 @@ onMounted(() => {
   fetchUsers();
 });
 
-// Watch page and limit for pagination changes
-watch([page, limit], () => {
+// Watch pagination and sorting changes
+watch([page, limit, sortBy, sortOrder], () => {
   fetchUsers();
 });
+
+function handleSort(key) {
+  if (sortBy.value === key) {
+    if (sortOrder.value === 'asc') {
+      sortOrder.value = 'desc';
+    } else {
+      sortBy.value = null;
+      sortOrder.value = 'asc';
+    }
+  } else {
+    sortBy.value = key;
+    sortOrder.value = 'asc';
+  }
+  page.value = 1;
+}
 
 // Watch first + last name for username suggest
 watch(
@@ -275,8 +292,8 @@ async function handleDelete() {
 
 const tableColumns = [
   { key: 'id', label: 'ID', width: '60px' },
-  { key: 'first_name', label: 'First Name', width: '130px' },
-  { key: 'last_name', label: 'Last Name', width: '130px' },
+  { key: 'first_name', label: 'First Name', width: '130px', sortable: true },
+  { key: 'last_name', label: 'Last Name', width: '130px', sortable: true },
   { key: 'username', label: 'Username', width: '130px' },
   { key: 'phone_number', label: 'Phone', width: '120px' },
   { key: 'address', label: 'Address', width: 'auto' },
@@ -307,7 +324,7 @@ const tableColumns = [
 
       <template v-else>
         <BaseTable :columns="tableColumns" :data="users" :loading="loading" empty-text="No users found in the system."
-          aria-label="Users table">
+          aria-label="Users table" :sort-by="sortBy" :sort-order="sortOrder" @sort="handleSort">
           <template #cell(actions)="{ row }">
             <div class="actions-cell">
               <BaseButton variant="neutral" @click="openEditModal(row)"
