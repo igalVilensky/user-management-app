@@ -34,10 +34,13 @@ async function handleResponse(res) {
 }
 
 // GET all users with pagination
-export async function getUsers(skip = 0, limit = 10, sortBy = null, sortOrder = 'asc') {
+export async function getUsers(skip = 0, limit = 10, sortBy = null, sortOrder = 'asc', search = null) {
     let url = `${API_BASE}/users?skip=${skip}&limit=${limit}`;
     if (sortBy) {
         url += `&sort_by=${encodeURIComponent(sortBy)}&sort_order=${encodeURIComponent(sortOrder)}`;
+    }
+    if (search) {
+        url += `&search=${encodeURIComponent(search)}`;
     }
     const res = await fetch(url);
     return handleResponse(res);
