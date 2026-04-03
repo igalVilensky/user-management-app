@@ -6,6 +6,7 @@ A modern, full-stack user management dashboard designed for efficient administra
 
 *   **⚡ Real-time CRUD**: Manage users with immediate UI feedback and toast notifications.
 *   **🤖 Smart Suggestions**: Automatically generates unique usernames based on first and last names.
+*   **🔍 Global Search**: Instantly filter users by name, last name, username, phone number, or address with a debounced, accessible search bar.
 *   **📄 Seamless Pagination & Sorting**: Handles large datasets with a robust pagination system and dynamic column sorting.
 *   **🛡️ Data Integrity**: Inline validation for fields and phone number masks.
 *   **📱 Responsive & Premium UI**: A clean, modern interface that works across all devices.
@@ -43,6 +44,9 @@ A modern, full-stack user management dashboard designed for efficient administra
 - **Full keyboard navigation support** (tab-based interaction).
 - **Accessible form inputs** with proper labeling and validation feedback.
 - **Modal focus management** to ensure correct accessibility for assistive technologies.
+- **Search landmark** (`<search>` element with `role="search"`) for quick navigation by screen reader users.
+- **Live result announcements**: a `aria-live` region announces the result count after each search (e.g. *"5 users found."*).
+- **`aria-controls`** links the search input to the data table for full semantic association.
 
 ---
 
@@ -146,7 +150,7 @@ pytest
 
 | Method | Endpoint | Description |
 | :--- | :--- | :--- |
-| **GET** | `/users/` | Fetch paginated list of users |
+| **GET** | `/users/` | Fetch paginated, sorted, and optionally filtered list of users (`?search=`) |
 | **POST** | `/users/` | Register a new user |
 | **GET** | `/users/{id}` | Retrieve specific user details |
 | **PUT** | `/users/{id}` | Update existing user information |
