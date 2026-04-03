@@ -19,6 +19,7 @@ const {
   limit,
   sortBy,
   sortOrder,
+  searchQuery,
   loading,
   error,
   fetchUsers,
@@ -124,6 +125,26 @@ onMounted(() => {
 // Watch pagination and sorting changes
 watch([page, limit, sortBy, sortOrder], () => {
   fetchUsers();
+});
+
+// Debounced search: reset to page 1 and refetch
+let searchDebounceTimer = null;
+watch(searchQuery, () => {
+  if (searchDebounceTimer) clearTimeout(searchDebounceTimer);
+  searchDebounceTimer = setTimeout(() => {
+    page.value = 1;
+    fetchUsers();
+  }, 300);
+});
+
+// Screen reader announcement for search results
+const searchResultsAnnouncement = computed(() => {
+  if (loading.value) return '';
+  if (!searchQuery.value) return '';
+  const count = totalUsers.value;
+  return count === 0
+    ? 'No users found for your search.'
+    : `${count} user${count === 1 ? '' : 's'} found.`;
 });
 
 function handleSort(key) {
@@ -310,9 +331,34 @@ const tableColumns = [
       </BaseButton>
     </header>
 
-    <!-- Add live region for screen reader announcements -->
+    <!-- Search bar -->
+    <search class="search-bar" role="search" aria-label="Search users">
+      <label for="user-search" class="sr-only">Search users by name, username, phone or address</label>
+      <div class="search-input-wrapper">
+        <span class="search-icon" aria-hidden="true">🔍</span>
+        <input
+          id="user-search"
+          v-model="searchQuery"
+          type="search"
+          placeholder="Search by name, username, phone or address…"
+          class="search-input"
+          autocomplete="off"
+          aria-controls="users-table"
+          :aria-busy="loading"
+        />
+        <button
+          v-if="searchQuery"
+          type="button"
+          class="search-clear"
+          @click="searchQuery = ''"
+          aria-label="Clear search"
+        >✕</button>
+      </div>
+    </search>
+
+    <!-- Live region for CRUD and search result announcements -->
     <div class="sr-only" aria-live="polite" role="status">
-      {{ successMessage }}
+      {{ successMessage || searchResultsAnnouncement }}
     </div>
 
     <BaseCard>
@@ -323,7 +369,7 @@ const tableColumns = [
       </div>
 
       <template v-else>
-        <BaseTable :columns="tableColumns" :data="users" :loading="loading" empty-text="No users found in the system."
+        <BaseTable id="users-table" :columns="tableColumns" :data="users" :loading="loading" empty-text="No users found in the system."
           aria-label="Users table" :sort-by="sortBy" :sort-order="sortOrder" @sort="handleSort">
           <template #cell(actions)="{ row }">
             <div class="actions-cell">
@@ -442,6 +488,75 @@ const tableColumns = [
 
 .dashboard-header h1 {
   margin: 0;
+}
+
+.search-bar {
+  margin-bottom: 1.5rem;
+}
+
+.search-input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  max-width: 480px;
+}
+
+.search-icon {
+  position: absolute;
+  left: 0.75rem;
+  font-size: 0.9rem;
+  pointer-events: none;
+  opacity: 0.5;
+}
+
+.search-input {
+  width: 100%;
+  padding: 0.6rem 2.25rem 0.6rem 2.25rem;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  font-size: 0.875rem;
+  font-family: inherit;
+  background: white;
+  color: var(--text-primary);
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.search-input::placeholder {
+  color: var(--text-secondary);
+}
+
+.search-input:focus {
+  outline: none;
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 3px var(--focus-ring-color);
+}
+
+/* Hide browser default clear button for search inputs */
+.search-input::-webkit-search-cancel-button {
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+.search-clear {
+  position: absolute;
+  right: 0.5rem;
+  background: none;
+  border: none;
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  cursor: pointer;
+  padding: 0.25rem;
+  border-radius: 50%;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color 0.15s ease, background 0.15s ease;
+}
+
+.search-clear:hover {
+  color: var(--text-primary);
+  background: var(--hover-bg);
 }
 
 .actions-cell {

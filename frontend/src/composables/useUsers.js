@@ -13,6 +13,7 @@ export function useUsers() {
     const limit = ref(10);
     const sortBy = ref(null);
     const sortOrder = ref('asc');
+    const searchQuery = ref('');
     const loading = ref(false);
     const error = ref(null);
     const creating = ref(false);
@@ -24,7 +25,7 @@ export function useUsers() {
         error.value = null;
         try {
             const skip = (page.value - 1) * limit.value;
-            const res = await getUsers(skip, limit.value, sortBy.value, sortOrder.value);
+            const res = await getUsers(skip, limit.value, sortBy.value, sortOrder.value, searchQuery.value || null);
             users.value = res.users;
             totalUsers.value = res.total_count;
         } catch (err) {
@@ -87,6 +88,7 @@ export function useUsers() {
         limit,
         sortBy,
         sortOrder,
+        searchQuery,
         loading,
         error,
         creating,
