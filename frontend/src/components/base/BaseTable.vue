@@ -90,9 +90,16 @@ function handleSort(col) {
         <!-- Empty -->
         <tr v-else>
           <td :colspan="columns.length" class="empty-cell">
-            <div class="empty-state">
-              <p>{{ emptyText }}</p>
-              <slot name="empty-cta" />
+            <div class="empty-state" role="status" aria-live="polite">
+              <div class="empty-icon-wrapper">
+                <slot name="empty-icon">
+                  <span class="default-empty-icon">📭</span>
+                </slot>
+              </div>
+              <p class="empty-text">{{ emptyText }}</p>
+              <div class="empty-actions">
+                <slot name="empty-cta" />
+              </div>
             </div>
           </td>
         </tr>
@@ -194,8 +201,27 @@ tr:last-child td {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 1rem;
+  gap: 1.25rem;
   color: var(--text-secondary);
+}
+
+.empty-icon-wrapper {
+  font-size: 2.5rem;
+  opacity: 0.7;
+  line-height: 1;
+  margin-bottom: 0.25rem;
+}
+
+.empty-text {
+  font-size: 1.1rem;
+  font-weight: 500;
+  max-width: 320px;
+  margin: 0;
+  line-height: 1.4;
+}
+
+.empty-actions {
+  margin-top: 0.5rem;
 }
 
 /* =========================

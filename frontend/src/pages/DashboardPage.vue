@@ -137,6 +137,18 @@ watch(searchQuery, () => {
   }, 300);
 });
 
+const stableSearchQuery = ref(searchQuery.value);
+watch(users, () => {
+  stableSearchQuery.value = searchQuery.value;
+});
+
+const isSearching = computed(() => !!stableSearchQuery.value);
+const emptyStateMessage = computed(() =>
+  isSearching.value
+    ? `No results found matching "${stableSearchQuery.value}"`
+    : "No users found in the system."
+);
+
 // Screen reader announcement for search results
 const searchResultsAnnouncement = computed(() => {
   if (loading.value) return '';
@@ -369,7 +381,7 @@ const tableColumns = [
       </div>
 
       <template v-else>
-        <BaseTable id="users-table" :columns="tableColumns" :data="users" :loading="loading" empty-text="No users found in the system."
+        <BaseTable id="users-table" :columns="tableColumns" :data="users" :loading="loading" :empty-text="emptyStateMessage"
           aria-label="Users table" :sort-by="sortBy" :sort-order="sortOrder" @sort="handleSort">
           <template #cell(actions)="{ row }">
             <div class="actions-cell">
@@ -386,8 +398,16 @@ const tableColumns = [
             </div>
           </template>
 
+          <template #empty-icon>
+            <span v-if="isSearching">🔍</span>
+            <span v-else>👥</span>
+          </template>
+
           <template #empty-cta>
-            <BaseButton variant="primary" @click="showCreateModal = true">
+            <BaseButton v-if="isSearching" variant="neutral" @click="searchQuery = ''">
+              Clear Search
+            </BaseButton>
+            <BaseButton v-else variant="primary" @click="showCreateModal = true">
               Create First User
             </BaseButton>
           </template>
