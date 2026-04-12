@@ -93,7 +93,7 @@ git clone https://github.com/igalVilensky/user-management-app.git
 cd user-management-app
 
 # Start services
-docker-compose up --build -d
+docker compose up --build -d
 ```
 
 * Frontend: [http://localhost:5173](http://localhost:5173)
