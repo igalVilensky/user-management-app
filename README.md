@@ -172,6 +172,14 @@ cd backend
 pytest
 ```
 
+Frontend E2E tests cover the dashboard UI flows with mocked API responses.
+
+```bash
+cd frontend
+npx playwright install chromium
+npm run test:e2e
+```
+
 ---
 
 ## 📡 API Endpoints

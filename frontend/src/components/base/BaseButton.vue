@@ -1,5 +1,7 @@
 <script setup>
-defineProps({
+import { computed } from 'vue';
+
+const props = defineProps({
   variant: {
     type: String,
     default: 'primary' // 'primary', 'danger', 'neutral'
@@ -20,12 +22,11 @@ defineProps({
   }
 });
 
-// Generate accessible label based on context
-const computedAriaLabel = (props) => {
+const computedAriaLabel = computed(() => {
   if (props.ariaLabel) return props.ariaLabel;
   if (props.loading) return 'Loading, please wait';
   return null;
-};
+});
 </script>
 
 <template>
